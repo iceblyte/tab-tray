@@ -1,0 +1,16 @@
+# npm
+node_modules/
+
+# Build output (ship via GitHub releases, not the repo)
+main.js
+*.map
+
+# Obsidian user data (user asset, never versioned)
+data.json
+
+# Editors / OS
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
