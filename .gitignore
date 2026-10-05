@@ -14,3 +14,7 @@ data.json
 *.iml
 .DS_Store
 Thumbs.db
+
+### CUSTOM ###
+.zcodeignore
+.zcode
