@@ -4,7 +4,7 @@
 |---|---|
 | 产品名 | **Tab Tray**（插件 ID：`tab-tray`） |
 | 上游需求 | [PRD v1.3（需求基线，2026-10-05 评审修订吸收）](./PRD.md) |
-| 文档状态 | **v1.0 —— 关键选型已确认（4 项用户决策），进入开发前评审** |
+| 文档状态 | **v1.1 —— v1.0 吸收评审意见三处补全（D19–D21），关键选型已确认** |
 | 日期 | 2026-10-05 |
 | 读者 | 开发者本人（solo + AI 辅助）、未来的自己、潜在协作者 |
 
@@ -180,6 +180,18 @@ export function mountSidebar(contentEl: HTMLElement, store: TrayStore, i18n: I18
 
 约定：`.svelte.ts` 中不 import `obsidian`；Svelte 组件不直接调 `app.workspace`（通过 props 注入 controller 回调）——保证视图层可替换、核心层可单测（P5/D9）。
 
+**Store → Runes 单向桥（D20）**：TrayStore 是框架无关的 Pub/Sub（`store.on('change')` 返回退订函数），Svelte 5 的 `$state` 是组件内响应式——两者用「快照整体赋值」对接。**每个组件只保留这一个订阅点**，订阅生命周期与组件生命周期严格同构（`$effect` 的返回值即清理函数），无手动 unsubscribe、无泄漏面：
+
+```ts
+// Sidebar.svelte <script lang="ts">
+let data = $state(store.snapshot());   // 初始快照，此后只被 change 事件整体替换
+$effect(() => store.on('change', () => { data = store.snapshot(); }));
+// $effect 返回退订函数 → unmount 自动清理（D20）
+
+// 模板对 data 做 keyed each：Store 每次全量换快照，Svelte 按 key 做最小 DOM 更新
+// {#each data.groups as group (group.id)} … {/each}
+```
+
 ### 2.4 测试：Vitest 4（✅ 用户确认）—— 对比与分层策略
 
 | 对比项 | **Vitest 4**（✅ 选定） | Jest 30 | node:test |
@@ -244,7 +256,7 @@ export interface ObsidianPort {
 | 插件实例模型 | **每 vault 单实例，运行于主窗口上下文**；Popout 只是独立 `Document`，非独立插件实例 | ✅ 官方 popout 迁移指南（v0.15 架构） |
 | pin 变化事件 | **官方不存在**；可行路径 = `layout-change` + 全 leaf 快照 diff | ✅ 检索核实（PRD F4 括注的 "pinned-change" 应理解为自建派生信号） |
 | 可用 Web 平台能力 | Electron 43 内核下 `structuredClone`、`crypto.randomUUID`、`popover`、`:has()` 等全部可用（按 Chromium 130+ 全量口径保守设计） | ✅ 推导（保守口径） |
-| 三平台差异 | Windows 路径大小写不敏感——路径一律取自 vault API（`TFile.path`），无手输路径入口，大小写天然一致 | ✅ 设计规避 |
+| 三平台差异（路径） | 路径唯一来源 = vault API（`TFile.path`），无手输路径入口；**入库/比对前一律过路径归一化**（D21，§3.2 不变量 6）——统一 POSIX `/` 等分隔符边缘；**不折叠大小写**（大小写敏感平台会制造假碰撞），一致性由单一来源保证 | ✅ 设计规避 |
 
 ### 2.7 小件决策清单（一次定完，避免实现期反复）
 
@@ -281,7 +293,7 @@ export interface ObsidianPort {
 
 | 模块 | 职责 | PRD 映射 | 依赖 |
 |------|------|----------|------|
-| `core/types.ts` | schema v1 类型 + 手写守卫 + 不变量常量 | F5, R1/R2/R9 | — |
+| `core/types.ts` | schema v1 类型 + 手写守卫 + 路径归一化 + 不变量常量 | F5, R1/R2/R9, D21 | — |
 | `core/store.ts` | TrayStore：状态容器 + `applyMutation` 唯一变更 API + change 事件 | F1/F3, P6 | types |
 | `core/persist.ts` | 持久化引擎：防抖、串行队列、原子写、.bak、回退、冲突仲裁 | F5 | types, port |
 | `core/migrate.ts` | schemaVersion 迁移链（纯函数） | F5 | types |
@@ -309,7 +321,7 @@ export const COLOR_KEYS = ['red','orange','yellow','green','teal',
 export type ColorKey = typeof COLOR_KEYS[number];      // R8：固定 10 色，无自由取色
 
 export interface Member {
-  path: string;          // vault 相对路径（POSIX 分隔符），R1：唯一可持久绑定物
+  path: string;          // vault 相对路径，R1：唯一可持久绑定物；入库前过 normalizeVaultPath（D21）
   addedAt: number;       // epoch ms，排序兜底与调试用
 }
 
@@ -341,6 +353,7 @@ export interface TrayData {
 3. `member.path` 只能来自 vault API 返回值（R7：无路径的未保存新标签在入口层拒绝）；
 4. 空分组合法（R9）；分组/成员数超 `softLimit` 时提示但放行；
 5. **data.json 中没有、也永远不新增**钉住状态字段（R6：pin 从 leaf 派生）。
+6. **路径归一化（D21）**：任何进入 Store 或参与比对的 `path`（R2 唯一性校验、rename 跟随、plan 函数成员匹配）必须先过 `normalizeVaultPath()`——统一 POSIX `/`、折叠重复分隔符、剥离首尾斜杠、trim。实现为 **core 内纯函数**（语义对齐官方导出的 `normalizePath`；core 不 import `obsidian`，故自实现并用单测锁定行为一致）；**不做大小写折叠**——大小写一致性由「路径唯一来源 = `TFile.path`」保证，在 Linux 等大小写敏感平台上折叠反而制造假碰撞。
 
 **磁盘布局**（插件目录内）：
 
@@ -492,6 +505,7 @@ function countOpen(members: string[], leaves: LeafSnapshot[]): number;
 
 - 「当前窗口」判定：命令触发瞬间捕获 `activeWindow`；leaf 归属窗口用 `leaf.view.containerEl.ownerDocument.defaultView === activeWindow` 判定（全公开 DOM 推导，🧪Spike V0d 顺带验证是否有更直接的官方属性）；
 - 替换的落点窗格 = 活动标签所在窗格；关闭 = 对计划内 leaf 逐个 `leaf.detach()`（单个失败 try/catch 继续，最终汇总提示）；
+- **焦点落点（收起方向，D19）**：若收起关闭了当前 Active 的 leaf，焦点交给 Obsidian 原生 `detach()` 后的回退机制（自动聚焦相邻 leaf），不自行跳焦；收起完成后若当前窗口已无任何 leaf（收起最后一组且无其他标签的极端态），补一个 `workspace.getLeaf('tab')` 空白新标签，防止窗口陷入无标签可用的空状态；
 - 打开顺序：以窗格内存活 leaf 为锚聚焦后逐个 `workspace.getLeaf('tab')` + `leaf.openFile(file, { active: false })`，最后激活第一个成员标签——避免逐个抢占焦点造成闪烁（🧪Spike V0b 验证该组合在替换场景的稳定行为）；
 - 触发源：侧边栏点击分组 / F6 命令 / 侧边栏双击（交互细化：单击组名=展开? 侧边栏条目交互在 T2 中按「点击组名=展开/收起切换，悬停出操作钮」实现，与 F1 成员点击语义不冲突）。
 
@@ -727,6 +741,7 @@ jobs:
 | file-follow | rename 跟随（含组内序保持）；delete → 丢失标记（内存派生，不入盘）；文件回归 → 标记自动消失 |
 | plan（展开/收起/计数） | replace：pinned 保留、无文件 leaf 清理、组员全量开（D4）；append：已开成员过滤（D4）；collapse：跨窗格全关、他窗口隔离（R11）、pinned 跳过计数、重复多窗格全关；countOpen 跨窗口去重；丢失成员跳过 |
 | i18n | en/zh key 集合一致；插值参数渲染；auto 语言解析 |
+| 路径归一化 | normalizeVaultPath 边界：反斜杠替换、重复分隔符折叠、首尾斜杠剥离、trim；关键用例与官方 `normalizePath` 语义对齐（D21） |
 
 ### 5.2 PRD 验收矩阵 ↔ 设计机制映射（M1–M9 为什么会绿）
 
@@ -775,6 +790,9 @@ jobs:
 | D16 | 紧凑行纯 CSS `order` 排左，零 DOM 移动 | 🔶 | 对升级最钝感（§3.3.5） | 低——形态由 V0d 定案 |
 | D17 | npm + Node 24 LTS | 🔶 | §2.7 | 高 |
 | D18 | 特性检测两级：静态结构 + 运行时自检 | 🔶 | F4 降级可控（v1.3 评审条款） | 低 |
+| D19 | 收起焦点回退：原生 detach 回退 + 空窗口补空白标签 | 🔶 | 不自行跳焦，避免与原生焦点管理竞争；极端空态的可用性兜底 | 高 |
+| D20 | Svelte 桥接：组件内唯一订阅点，快照整体替换 + keyed each | 🔶 | `$effect` 退订与组件生命周期同构，无手动 unsubscribe 泄漏面 | 高 |
+| D21 | 路径入库/比对前强制归一化（core 纯函数，语义对齐官方 normalizePath） | 🔶 | 防分隔符混用与边缘未归一化输入；不折叠大小写保护 Linux 平台 | 低 |
 
 ### 6.2 PRD 追溯矩阵
 
