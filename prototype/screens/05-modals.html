@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 05 删除确认弹窗</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>A1</kbd> <span class="lz">删除分组必须二次确认；文案明确「成员移出、文件不删」，降低破坏性误判</span><span class="le">Group deletion always confirms; copy clarifies members detach but files are never deleted</span></li>
+      <li><kbd>R10</kbd> <span class="lz">删除仅影响分组定义，data.json 即时防抖落盘（≤500ms），.bak 保留上一份</span><span class="le">Only group definitions are affected; data.json persists within 500ms with a .bak fallback</span></li>
+      <li><kbd>R5</kbd> <span class="lz">右上同时演示固定互斥提示（在已固定标签上添加分组时的阻止 Notice）</span><span class="le">Top-right also demos the pinned-tab block notice (R5)</span></li>
+      <li><kbd>P4</kbd> <span class="lz">弹窗为 Obsidian Modal 原生样式：危险动作用 error 色，不新增视觉语言</span><span class="le">The modal uses the native Obsidian Modal style; destructive actions use the error color</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="ribbon">
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-tabs">
+        <div class="stab"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">文件</span><span class="le">Files</span></div>
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="lz">分组</span><span class="le">Groups</span></div>
+      </div>
+      <div class="glist">
+        <div class="group gc-blue">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">研究</span><span class="le">Research</span></span>
+            <span class="gcount has">3/5</span>
+          </div>
+          <div class="members">
+            <div class="member"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">论文草稿.md</span></div>
+            <div class="member"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">文献综述.md</span></div>
+          </div>
+        </div>
+        <div class="group gc-orange folded">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">项目</span><span class="le">Projects</span></span>
+            <span class="gcount has">2/3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab active"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">论文草稿.md</span></div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">论文草稿.md</h1>
+          <p class="nt-p"><span class="lz">（背景层被遮罩压暗，弹窗居中。该弹窗由侧边栏组菜单的「删除分组…」触发。）</span><span class="le">(Background dimmed, modal centered. Triggered by "Delete group…" in the sidebar group menu.)</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 遮罩 + 弹窗 -->
+  <div class="overlay">
+    <div class="modal">
+      <h3 class="mo-title"><span class="lz">删除分组</span><span class="le">Delete group</span></h3>
+      <p class="mo-body">
+        <span class="lz">确认删除分组「<b>研究</b>」？组内 <b>5 个成员</b>将一并移出分组，但<b>不会删除任何文件</b>。此操作不可撤销。</span>
+        <span class="le">Delete group "<b>Research</b>"? Its <b>5 members</b> will be detached from the group, but <b>no files will be deleted</b>. This cannot be undone.</span>
+      </p>
+      <div class="mo-acts">
+        <button class="btn"><span class="lz">取消</span><span class="le">Cancel</span></button>
+        <button class="btn btn-danger"><span class="lz">删除分组</span><span class="le">Delete group</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 固定互斥提示（R5） -->
+  <div class="notice-wrap" style="top:50px;">
+    <div class="notice err">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>
+      <div>
+        <span class="lz">该标签已固定，请先取消固定再加入分组。</span>
+        <span class="le">This tab is pinned — unpin it before adding it to a group.</span>
+        <span class="n-sub">R5 · <span class="lz">入口层互斥：五个添加入口统一拦截</span><span class="le">Entry-level mutual exclusion, enforced on all five entries</span></span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 01 主工作区</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <button class="demo-btn" data-act="color" title="按分组染色 开/关"><span class="dot-ind"></span><span class="lz">染色</span><span class="le">Color</span></button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>F1</kbd> <span class="lz">分组侧边栏：色点 + 名称 + 已开计数 n/m；悬停出操作钮</span><span class="le">Sidebar: color dot + name + open count n/m; hover reveals actions</span></li>
+      <li><kbd>F2</kbd> <span class="lz">点击组名 = 展开/收起切换；展开默认替换当前窗格，Ctrl/Cmd = 追加；仅作用当前窗口（R11）</span><span class="le">Click group = expand/collapse; expand replaces active pane, Ctrl/Cmd appends; current window only (R11)</span></li>
+      <li><kbd>F4</kbd> <span class="lz">紧凑固定行：已钉标签收缩为图标列于左侧，悬停 tooltip 显示全名</span><span class="le">Compact pinned row: pinned tabs shrink to icons, hover for full-name tooltip</span></li>
+      <li><kbd>R6</kbd> <span class="lz">📌 挂起成员：组员被原生钉住后显示 pin 角标，收起/替换跳过</span><span class="le">📌 suspended member: natively pinned group member, skipped on collapse/replace</span></li>
+      <li><kbd>R4</kbd> <span class="lz">丢失成员：样式区分、绝不静默删除</span><span class="le">Missing member: styled distinctly, never silently removed</span></li>
+      <li><kbd>染色</kbd> <span class="lz">按分组染色：组员标签头包裹组色胶囊（右上「染色」可开关对比）</span><span class="le">Group coloring: member tabs wrapped in group-color capsule (toggle via top-right "Color")</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- Ribbon -->
+    <div class="ribbon">
+      <button class="rib-btn" title="快速切换"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></button>
+      <button class="rib-btn" title="命令面板"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg></button>
+      <button class="rib-btn" title="关系图谱"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 9 9-9 9-9-9z"/></svg></button>
+      <div class="rib-sep"></div>
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <!-- 左侧边栏：Tab Tray 分组视图 -->
+    <div class="sidebar">
+      <div class="side-tabs">
+        <div class="stab"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">文件</span><span class="le">Files</span></div>
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="lz">分组</span><span class="le">Groups</span></div>
+      </div>
+
+      <div class="view-head">
+        <span class="vh-title">Tab Tray</span>
+        <button class="vh-new"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lz">新建分组</span><span class="le">New group</span></button>
+      </div>
+
+      <div class="glist">
+
+        <!-- 研究：展开，含挂起/丢失成员 -->
+        <div class="group gc-blue">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">研究</span><span class="le">Research</span></span>
+            <span class="gcount has">3/5</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" data-toggle="#gm-research" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="members">
+            <div class="member" title="已打开 → 点击聚焦现有标签；Ctrl/Cmd = 新开">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">论文草稿.md</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member" title="未打开 → 点击在当前窗格打开；Ctrl/Cmd = 新开">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">文献综述.md</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+              <span class="mname">数据整理.canvas</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member msusp" title="挂起成员：已被原生钉住（R6），收起/替换时跳过；取消固定后自动恢复">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">参考笔记.md</span>
+              <svg class="i12 mpin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member mmiss" title="失效成员（R4）：文件已被移动/删除，仅标记不消失">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">旧笔记.md</span>
+              <span class="mflag"><span class="lz">丢失</span><span class="le">missing</span></span>
+            </div>
+          </div>
+          <!-- ⋯ 菜单（点击演示） -->
+          <div class="popover gmenu" id="gm-research">
+            <div class="mi"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><span class="lz">重命名</span><span class="le">Rename</span></div>
+            <div class="mi"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="lz">更改颜色</span><span class="le">Change color</span></div>
+            <div class="msep"></div>
+            <div class="mi danger"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg><span class="lz">删除分组…</span><span class="le">Delete group…</span></div>
+          </div>
+        </div>
+
+        <!-- 写作：折叠 -->
+        <div class="group gc-green folded">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">写作</span><span class="le">Writing</span></span>
+            <span class="gcount">0/4</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 项目：展开 -->
+        <div class="group gc-orange">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">项目</span><span class="le">Projects</span></span>
+            <span class="gcount has">2/3</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="members">
+            <div class="member">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">周报-十月.md</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+              <span class="mname">里程碑.canvas</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">需求池.md</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 日常：折叠 -->
+        <div class="group gc-gray folded">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">日常</span><span class="le">Daily</span></span>
+            <span class="gcount">0/2</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+        </div>
+
+        <!-- 收集箱：空分组（R9） -->
+        <div class="group gc-pink">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">收集箱</span><span class="le">Inbox</span></span>
+            <span class="gcount">0/0</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="gempty"><span class="lz">将文件拖入此处，或右键文件「添加到分组」</span><span class="le">Drag files here, or right-click a file → "Add to group"</span></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 主区：标签栏 + 编辑器 -->
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="pinrow" title="紧凑固定行（F4）：已钉标签收缩为图标">
+          <button class="pintab gc-blue" data-tip="参考笔记.md（研究）">
+            <svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="pindot"></span>
+          </button>
+          <button class="pintab" data-tip="模板.md">
+            <svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+          </button>
+        </div>
+        <div class="tabs">
+          <div class="tab grouped gc-blue">
+            <span class="tdot"></span>
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">文献综述.md</span>
+            <button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div class="tab grouped gc-blue active">
+            <span class="tdot"></span>
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">论文草稿.md</span>
+            <button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div class="tab grouped gc-blue">
+            <span class="tdot"></span>
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+            <span class="ttitle">数据整理.canvas</span>
+            <button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div class="tab">
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">日常随笔.md</span>
+            <button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+          <div class="tab grouped gc-orange">
+            <span class="tdot"></span>
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">周报-十月.md</span>
+            <button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+          </div>
+        </div>
+        <div class="tb-acts">
+          <button class="tb-btn" title="新建标签"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="tb-btn" title="更多"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+        </div>
+      </div>
+
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">论文草稿.md</h1>
+          <div class="nt-path">项目 / 论文草稿.md</div>
+          <h2 class="nt-h2">研究背景</h2>
+          <p class="nt-p">多标签并行是知识工作的常态：研究、写作与项目并行推进时，标签栏很快堆积数十个标签，缺乏结构导致检索成本随规模线性上涨。</p>
+          <p class="nt-p">本节梳理标签组织的三类既有方案：浏览器式分组、工作区切换与垂直标签视图，并比较其持久化可靠性与心智负担。</p>
+          <div class="callout">[!info] 提示<br>「研究」分组的 3 个已打开标签以蓝色胶囊环绕——这是按分组染色的效果，色点与胶囊颜色同源。</div>
+          <h2 class="nt-h2">待补充</h2>
+          <p class="nt-li">竞品持久化缺陷案例整理（Group Tabs #4）</p>
+          <p class="nt-li">用户访谈纪要归档至「写作」分组</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

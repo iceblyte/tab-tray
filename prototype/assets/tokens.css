@@ -1,0 +1,101 @@
+/* ============================================================
+   Tab Tray UI 原型 · 设计令牌
+   对齐 Obsidian 默认主题变量体系（设计原则 P1：原生融入）
+   暗色 = Obsidian 默认；亮色为对应推导值
+   ============================================================ */
+
+.theme-dark {
+  color-scheme: dark;
+
+  /* 中性面 */
+  --bg-primary: #1e1e1e;            /* 编辑器 / 活动标签 */
+  --bg-secondary: #161616;          /* 侧栏 / 标签栏底 */
+  --bg-elevated: #282828;           /* 菜单 / 弹层 / 弹窗 */
+  --bg-outer: #111214;              /* 原型页外背景 */
+  --bg-hover: rgba(255, 255, 255, .06);
+  --bg-active: rgba(255, 255, 255, .10);
+
+  --border: #2e2e2e;
+  --border-strong: #454545;
+
+  --text-normal: #dadada;
+  --text-muted: #9a9a9a;
+  --text-faint: #7c7c7c;
+
+  /* 交互色（跟随 Obsidian --accent-h/s/l 体系） */
+  --accent: #8b6cf0;
+  --accent-hover: #9d84f3;
+  --on-accent: #ffffff;
+
+  --error: #e35d6b;
+  --error-bg: rgba(227, 93, 107, .12);
+
+  --scrim: rgba(0, 0, 0, .55);
+  --shadow-pop: 0 4px 16px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .04);
+  --shadow-win: 0 24px 80px rgba(0, 0, 0, .6);
+
+  /* 分组身份色板 · 10 色（R8）暗色版 */
+  --g-red: #e35d6b;
+  --g-orange: #e88a3a;
+  --g-yellow: #d9b13b;
+  --g-green: #57bd6f;
+  --g-teal: #2fb8b0;
+  --g-blue: #5b97ea;
+  --g-indigo: #8389ec;
+  --g-purple: #a277f2;
+  --g-pink: #e46fb0;
+  --g-gray: #9b9b9b;
+}
+
+.theme-light {
+  color-scheme: light;
+
+  --bg-primary: #ffffff;
+  --bg-secondary: #f2f3f5;
+  --bg-elevated: #ffffff;
+  --bg-outer: #e6e7eb;
+  --bg-hover: rgba(0, 0, 0, .05);
+  --bg-active: rgba(0, 0, 0, .08);
+
+  --border: #dcdcdc;
+  --border-strong: #b9b9b9;
+
+  --text-normal: #232323;
+  --text-muted: #666666;
+  --text-faint: #999999;
+
+  --accent: #7852e0;
+  --accent-hover: #8a67e8;
+  --on-accent: #ffffff;
+
+  --error: #c94452;
+  --error-bg: rgba(201, 68, 82, .10);
+
+  --scrim: rgba(0, 0, 0, .30);
+  --shadow-pop: 0 4px 16px rgba(0, 0, 0, .14), 0 0 0 1px rgba(0, 0, 0, .06);
+  --shadow-win: 0 24px 80px rgba(0, 0, 0, .25);
+
+  /* 分组身份色板 · 10 色（R8）亮色版 */
+  --g-red: #c94452;
+  --g-orange: #bf6516;
+  --g-yellow: #9a7b00;
+  --g-green: #3d9a50;
+  --g-teal: #158a84;
+  --g-blue: #2f6fbb;
+  --g-indigo: #545bc7;
+  --g-purple: #7e4ec9;
+  --g-pink: #c2498f;
+  --g-gray: #7e7e7e;
+}
+
+/* 分组色工具类：设置后子元素经 var(--gc) 取色 */
+.gc-red    { --gc: var(--g-red); }
+.gc-orange { --gc: var(--g-orange); }
+.gc-yellow { --gc: var(--g-yellow); }
+.gc-green  { --gc: var(--g-green); }
+.gc-teal   { --gc: var(--g-teal); }
+.gc-blue   { --gc: var(--g-blue); }
+.gc-indigo { --gc: var(--g-indigo); }
+.gc-purple { --gc: var(--g-purple); }
+.gc-pink   { --gc: var(--g-pink); }
+.gc-gray   { --gc: var(--g-gray); }

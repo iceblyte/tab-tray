@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 07 命令面板</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>F6</kbd> <span class="lz">每个分组动态注册「打开分组：X」「收起分组：X」，用户可自绑快捷键；命令 id 用 groupId，重命名不影响已绑快捷键（D10）</span><span class="le">Per-group "Open group: X" / "Collapse group: X" commands, hotkey-bindable; ids use groupId (D10)</span></li>
+      <li><kbd>F6</kbd> <span class="lz">全局命令：新建分组 / 收起当前分组的标签 / 打开分组侧边栏；「当前分组」= 活动标签所属分组（D12）</span><span class="le">Global commands: New group / Collapse active group (D12) / Open group sidebar</span></li>
+      <li><kbd>A6/P5</kbd> <span class="lz">命令不依赖侧边栏视图打开；分组命令行首带组色点，与侧边栏一致</span><span class="le">Commands work with the sidebar closed; group commands carry the group color dot</span></li>
+      <li><kbd>R11</kbd> <span class="lz">打开/收起命令同样仅作用于触发时的当前窗口</span><span class="le">Open/collapse commands also apply to the triggering window only</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="ribbon">
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab grouped gc-blue active"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">论文草稿.md</span></div>
+          <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">日常随笔.md</span></div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">论文草稿.md</h1>
+          <p class="nt-p"><span class="lz">（背景层被遮罩压暗；演示查询词「分组」，模糊匹配 Tab Tray 注册的全部命令。）</span><span class="le">(Background dimmed; query "分组" fuzzy-matches every Tab Tray command.)</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 命令面板 -->
+  <div class="overlay top">
+    <div class="cmdk">
+      <input class="cmdk-input" value="分组" readonly>
+      <div class="cmdk-list">
+        <div class="cmdk-item sel gc-blue">
+          <span class="gdot"></span>
+          <span><span class="lz">打开分组：研究</span><span class="le">Open group: Research</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item gc-blue">
+          <span class="gdot"></span>
+          <span><span class="lz">收起分组：研究</span><span class="le">Collapse group: Research</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item gc-green">
+          <span class="gdot"></span>
+          <span><span class="lz">打开分组：写作</span><span class="le">Open group: Writing</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item gc-green">
+          <span class="gdot"></span>
+          <span><span class="lz">收起分组：写作</span><span class="le">Collapse group: Writing</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item gc-orange">
+          <span class="gdot"></span>
+          <span><span class="lz">打开分组：项目</span><span class="le">Open group: Projects</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item">
+          <span class="gdot empty"></span>
+          <span><span class="lz">收起当前分组的标签</span><span class="le">Collapse the active group's tabs</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item">
+          <span class="gdot empty"></span>
+          <span><span class="lz">新建分组</span><span class="le">New group</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+        <div class="cmdk-item">
+          <span class="gdot empty"></span>
+          <span><span class="lz">打开分组侧边栏</span><span class="le">Open group sidebar</span></span>
+          <span class="cmdk-src">Tab Tray</span>
+        </div>
+      </div>
+      <div class="cmdk-foot">
+        <span>↑↓ <span class="lz">导航</span><span class="le">navigate</span></span>
+        <span>↵ <span class="lz">执行</span><span class="le">run</span></span>
+        <span>esc <span class="lz">关闭</span><span class="le">dismiss</span></span>
+        <span style="margin-left:auto"><span class="lz">按组名继续过滤，如「研究」</span><span class="le">Keep typing to filter, e.g. "research"</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

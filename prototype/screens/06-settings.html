@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 06 设置页</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>F8/D15</kbd> <span class="lz">语言：自动（跟随 Obsidian）/ 简体中文 / English</span><span class="le">Language: auto (follow Obsidian) / 简体中文 / English</span></li>
+      <li><kbd>F4</kbd> <span class="lz">紧凑固定行开关默认开启；底部演示「降级态」——特性检测失败时开关置灰 + 可见提示，分组功能不受影响</span><span class="le">Compact row toggle defaults on; the bottom shows the degraded state — greyed toggle + visible notice, grouping unaffected</span></li>
+      <li><kbd>R9</kbd> <span class="lz">软阈值：超出提示但放行</span><span class="le">Soft limit: warns but never blocks</span></li>
+      <li><kbd>F5/R10</kbd> <span class="lz">持久化说明外显（写盘策略/.bak/冲突仲裁/卸载不清数据），把「数据是资产」做成可感知的信任面</span><span class="le">Persistence surfaced in UI (write path/.bak/conflict arbitration/uninstall keeps data) as a trust surface</span></li>
+      <li><kbd>§4.1</kbd> <span class="lz">关于区含爱发电赞助链接（PRD 指定 afdian.com/a/iceblyte）</span><span class="le">About section carries the Afdian sponsor link</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — <span class="lz">设置</span><span class="le">Settings</span></div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="set-app">
+    <!-- 左侧导航 -->
+    <div class="set-nav">
+      <div class="snav-sec"><span class="lz">选项</span><span class="le">Options</span></div>
+      <div class="snav"><span class="lz">编辑器</span><span class="le">Editor</span></div>
+      <div class="snav"><span class="lz">文件</span><span class="le">Files</span></div>
+      <div class="snav"><span class="lz">外观</span><span class="le">Appearance</span></div>
+      <div class="snav"><span class="lz">快捷键</span><span class="le">Hotkeys</span></div>
+      <div class="snav"><span class="lz">核心插件</span><span class="le">Core plugins</span></div>
+      <div class="snav-sec"><span class="lz">第三方插件</span><span class="le">Community plugins</span></div>
+      <div class="snav active">Tab Tray</div>
+      <div class="snav" style="color:var(--text-faint)">Dataview</div>
+      <div class="snav" style="color:var(--text-faint)">Calendar</div>
+      <div class="snav" style="color:var(--text-faint)">Templater</div>
+    </div>
+
+    <!-- 右侧内容 -->
+    <div class="set-pane">
+      <h1 class="set-h1">Tab Tray</h1>
+      <div class="set-sub">v1.0.0 · MIT · <span class="lz">分组侧边栏 + 紧凑固定行</span><span class="le">Group sidebar + compact pinned row</span></div>
+
+      <div class="set-sec"><span class="lz">常规</span><span class="le">General</span></div>
+
+      <div class="set-row">
+        <div class="set-info">
+          <div class="set-label"><span class="lz">语言</span><span class="le">Language</span></div>
+          <div class="set-desc"><span class="lz">界面文案语言；「自动」跟随 Obsidian 语言设置。</span><span class="le">UI language; "Auto" follows the Obsidian language setting.</span></div>
+        </div>
+        <div class="set-ctl">
+          <select class="ctl-select">
+            <option><span class="lz">自动（跟随 Obsidian）</span></option>
+            <option>简体中文</option>
+            <option>English</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="set-row">
+        <div class="set-info">
+          <div class="set-label"><span class="lz">启用紧凑固定行</span><span class="le">Compact pinned tabs</span></div>
+          <div class="set-desc"><span class="lz">将已固定的标签在标签栏左侧收缩为图标，悬停显示完整文件名；右键/中键保持原生行为。关闭后恢复 Obsidian 原生样式。</span><span class="le">Shrink pinned tabs into icons on the left of the tab bar, with full-name tooltips; right/middle click stay native. Turning off restores the native style.</span></div>
+        </div>
+        <div class="set-ctl"><span class="toggle on"></span></div>
+      </div>
+
+      <!-- 降级状态示意（紧邻开关，便于对照） -->
+      <div class="set-row" style="opacity:.75;">
+        <div class="set-info">
+          <div class="set-label"><span class="lz">启用紧凑固定行（降级态示意）</span><span class="le">Compact pinned tabs (degraded sample)</span></div>
+          <div class="set-desc"><span class="lz">特性检测失败时：开关自动关闭并置灰 + 可见提示；分组功能不受任何影响，升级 Obsidian 后自动恢复。</span><span class="le">On detection failure: toggled off and greyed with a visible notice; grouping unaffected, restored after upgrading Obsidian.</span></div>
+        </div>
+        <div class="set-ctl"><span class="toggle disabled"></span></div>
+      </div>
+      <div class="set-note warn" style="margin-top:-6px;">
+        <span class="lz">⚠ 紧凑固定行在当前 Obsidian 版本不可用，不影响分组功能。</span>
+        <span class="le">⚠ Compact pinned tabs are unavailable in this Obsidian version — grouping is unaffected.</span>
+      </div>
+
+      <div class="set-row">
+        <div class="set-info">
+          <div class="set-label"><span class="lz">成员数软阈值</span><span class="le">Soft member limit</span></div>
+          <div class="set-desc"><span class="lz">单个分组的成员数超过该值时提示一次，但不阻止添加。</span><span class="le">Warn once when a group exceeds this member count, but never block.</span></div>
+        </div>
+        <div class="set-ctl"><input class="ctl-num" value="30"></div>
+      </div>
+
+      <div class="set-sec"><span class="lz">数据与持久化</span><span class="le">Data &amp; persistence</span></div>
+      <div class="set-note">
+        <span class="lz">分组数据保存于 <code>.obsidian/plugins/tab-tray/data.json</code>：每次变更 ≤500ms 内防抖原子写盘，并轮换 <code>data.json.bak</code> 备份；主文件损坏时自动回退备份并提示；检测到同步冲突副本时加载最新可解析版本并提示。卸载或禁用插件<b>不会删除</b>数据文件。</span>
+        <span class="le">Group data lives in <code>.obsidian/plugins/tab-tray/data.json</code>: every change is debounced and atomically written within 500ms, rotating a <code>data.json.bak</code> copy; corrupted mains fall back to the backup with a notice; sync-conflict copies are arbitrated by loading the newest parsable version. Uninstalling or disabling the plugin <b>never deletes</b> your data.</span>
+      </div>
+
+      <div class="set-sec"><span class="lz">关于</span><span class="le">About</span></div>
+      <div class="set-row">
+        <div class="set-info">
+          <div class="set-label">Tab Tray v1.0.0 · MIT License</div>
+          <div class="set-desc"><span class="lz">Obsidian 桌面端标签分组与固定收纳。</span><span class="le">Browser-style tab grouping and pinning for Obsidian desktop.</span></div>
+        </div>
+        <div class="set-ctl">
+          <a class="sponsor" href="https://afdian.com/a/iceblyte" target="_blank" rel="noreferrer">
+            <svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+            <span class="lz">在爱发电赞助作者</span><span class="le">Sponsor on Afdian</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

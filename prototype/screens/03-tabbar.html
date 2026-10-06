@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 03 标签栏与紧凑固定行</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <button class="demo-btn" data-act="color" title="按分组染色 开/关"><span class="dot-ind"></span><span class="lz">染色</span><span class="le">Color</span></button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>F4</kbd> <span class="lz">紧凑固定行：对真实标签头原地重整（类名+CSS 排左），零 DOM 移动；特性检测失败 → 开关置灰降级</span><span class="le">Compact pinned row: in-place restyle of real tab headers; graceful degradation on detection failure</span></li>
+      <li><kbd>染色</kbd> <span class="lz">按分组染色 = 组色胶囊环绕成员标签头（Chrome 式，单文件不染色）；右上「染色」可开关对比 v1 基线</span><span class="le">Group coloring = group-color capsule around member tabs (Chrome style, single files uncolored); toggle top-right</span></li>
+      <li><span class="lz">胶囊方案 A（色点）为默认提案，方案 B（组名 chip）供比选</span><span class="le">Capsule variant A (dot) is the default; variant B (name chip) for comparison</span></li>
+      <li><span class="lz">交互零劫持：左键/右键/中键全部保持原生行为</span><span class="le">Zero event hijacking: left/right/middle click stay native</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="ribbon">
+      <button class="rib-btn" title="快速切换"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></button>
+      <button class="rib-btn" title="命令面板"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg></button>
+      <div class="rib-sep"></div>
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <div class="specimens">
+
+      <!-- 1 基准态 -->
+      <div class="spec">
+        <div class="spec-l">1 · <span class="lz">基准态：紧凑固定行 + 分组染色 + 活动态</span><span class="le">Baseline: pinned row + group coloring + active state</span></div>
+        <div class="tabbar">
+          <div class="pinrow">
+            <button class="pintab gc-blue" data-tip="参考笔记.md（研究）"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab" data-tip="模板.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+          </div>
+          <div class="tabs">
+            <div class="tab grouped gc-blue"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">文献综述.md</span></div>
+            <div class="tab grouped gc-blue active"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">论文草稿.md</span><button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+            <div class="tab grouped gc-orange"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">周报-十月.md</span></div>
+            <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">日常随笔.md</span></div>
+          </div>
+          <div class="tb-acts">
+            <button class="tb-btn"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+          </div>
+        </div>
+        <div class="spec-note"><span class="lz">组员标签头 = 组色胶囊环绕；未入组标签（日常随笔）不染色。活动组员标签底色混入 14% 组色。</span><span class="le">Member tabs get the group-color capsule; ungrouped tabs stay plain. Active member tab mixes 14% group color.</span></div>
+      </div>
+
+      <!-- 2 方案对比 -->
+      <div class="spec">
+        <div class="spec-l">2 · <span class="lz">胶囊方案对比：A 色点（默认提案） vs B 组名 chip</span><span class="le">Capsule variants: A dot (default) vs B name chip</span></div>
+        <div class="tabbar" style="margin-bottom:10px;">
+          <div class="tabs">
+            <div class="tab grouped gc-green active"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">章节大纲.md</span></div>
+            <div class="tab grouped gc-green"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">人物设定.md</span></div>
+            <div class="tab grouped gc-green"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">灵感速记.md</span></div>
+            <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">读书摘录.md</span></div>
+          </div>
+        </div>
+        <div class="tabbar">
+          <div class="tabs">
+            <div class="tab grouped gc-green active"><span class="gchip"><span class="lz">写作</span><span class="le">Writing</span></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">章节大纲.md</span></div>
+            <div class="tab grouped gc-green"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">人物设定.md</span></div>
+            <div class="tab grouped gc-green"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">灵感速记.md</span></div>
+            <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">读书摘录.md</span></div>
+          </div>
+        </div>
+        <div class="spec-note"><span class="lz">方案 A 更省横向空间，组名归属由侧边栏承担；方案 B 更接近 Chrome（组名 chip 在最左成员前）。默认提案为 A。</span><span class="le">Variant A saves horizontal space (group names live in the sidebar); variant B is closer to Chrome (name chip on the first member). Default proposal: A.</span></div>
+      </div>
+
+      <!-- 3 tooltip -->
+      <div class="spec">
+        <div class="spec-l">3 · <span class="lz">紧凑固定行 tooltip（悬停显示完整文件名）</span><span class="le">Compact pinned row tooltip (full file name on hover)</span></div>
+        <div class="tabbar" style="padding-bottom:26px;">
+          <div class="pinrow">
+            <button class="pintab gc-blue tooltip-on" data-tip="参考笔记.md（研究）"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab" data-tip="模板.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+          </div>
+          <div class="tabs"><div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">日常随笔.md</span></div></div>
+        </div>
+        <div class="spec-note"><span class="lz">tooltip 经原生 aria-label 实现；右下角 5px 组色角标 = 该固定标签属于「研究」组（v1.1 候选，随染色一并呈现）。</span><span class="le">Tooltip via native aria-label; the 5px color badge marks the owning group (v1.1 candidate, shipped with coloring here).</span></div>
+      </div>
+
+      <!-- 4 溢出 -->
+      <div class="spec">
+        <div class="spec-l">4 · <span class="lz">固定图标过多：横向滚动 / 收缩</span><span class="le">Too many pinned icons: horizontal scroll / shrink</span></div>
+        <div class="tabbar">
+          <div class="pinrow scroll">
+            <button class="pintab" data-tip="收件箱.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+            <button class="pintab gc-red" data-tip="紧急-发布清单.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab gc-blue" data-tip="参考笔记.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab gc-teal" data-tip="看板.canvas"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg><span class="pindot"></span></button>
+            <button class="pintab gc-purple" data-tip="灵感板.canvas"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg><span class="pindot"></span></button>
+            <button class="pintab" data-tip="日记模板.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+            <button class="pintab gc-orange" data-tip="路线图.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab" data-tip="快捷键速查.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+          </div>
+          <div class="tabs"><div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">日常随笔.md</span></div></div>
+        </div>
+        <div class="spec-note"><span class="lz">固定区宽度有上限，超出后横向滚动（细滚动条），不挤压普通标签区。</span><span class="le">The pinned area has a width cap and scrolls horizontally with a thin scrollbar, never squeezing normal tabs.</span></div>
+      </div>
+
+      <!-- 5 交互注记 -->
+      <div class="spec">
+        <div class="spec-l">5 · <span class="lz">固定行交互（零劫持，与原生共生）</span><span class="le">Pinned-row interactions (zero hijack, native-first)</span></div>
+        <div class="kv">
+          <div><b><span class="lz">左键</span><span class="le">Left click</span></b> — <span class="lz">激活该标签</span><span class="le">activate the tab</span></div>
+          <div><b><span class="lz">右键</span><span class="le">Right click</span></b> — <span class="lz">原生标签菜单（经官方 file-menu 事件挂载，含「添加到分组 ▸」）</span><span class="le">native tab menu (via the official file-menu event, includes "Add to group ▸")</span></div>
+          <div><b><span class="lz">中键</span><span class="le">Middle click</span></b> — <span class="lz">保持原生行为：关闭并取消固定</span><span class="le">native behavior: close and unpin</span></div>
+          <div><b><span class="lz">悬停</span><span class="le">Hover</span></b> — <span class="lz">tooltip 显示完整文件名</span><span class="le">tooltip with the full file name</span></div>
+          <div><b><span class="lz">图标</span><span class="le">Icon</span></b> — <span class="lz">原生文件类型图标（v1 不做自定义图标）</span><span class="le">native file-type icons (no custom icons in v1)</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

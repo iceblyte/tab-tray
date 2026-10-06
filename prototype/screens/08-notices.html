@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 08 通知 Notice</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>Obsidian</kbd> <span class="lz">通知使用原生 Notice 形态：右上角堆叠、左侧色条区分语义（成功/警示/危险/信息）、自动消散、可手动关闭</span><span class="le">Native Notice pattern: top-right stack, left color rail for semantics, auto-dismiss, closable</span></li>
+      <li><kbd>F2/R6</kbd> <span class="lz">收起跳过挂起成员必须提示数量，用户才知道发生了什么</span><span class="le">Collapse must report how many pinned members were skipped</span></li>
+      <li><kbd>F5/M7</kbd> <span class="lz">同步冲突与写盘失败都必须可见——「数据是资产」的可信来自诚实的状态播报</span><span class="le">Sync conflicts and write failures must be visible — trust comes from honest reporting</span></li>
+      <li><kbd>R5</kbd> <span class="lz">首次替换式展开的提示（风险缓解）：告知 Ctrl/Cmd 追加模式的存在</span><span class="le">First-use hint for replace-expand: teaches the Ctrl/Cmd append mode</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="ribbon">
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-tabs">
+        <div class="stab"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">文件</span><span class="le">Files</span></div>
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="lz">分组</span><span class="le">Groups</span></div>
+      </div>
+      <div class="glist">
+        <div class="group gc-blue folded">
+          <div class="ghead"><span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span><span class="gdot"></span><span class="gname"><span class="lz">研究</span><span class="le">Research</span></span><span class="gcount has">3/5</span></div>
+        </div>
+        <div class="group gc-green folded">
+          <div class="ghead"><span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span><span class="gdot"></span><span class="gname"><span class="lz">写作</span><span class="le">Writing</span></span><span class="gcount">0/4</span></div>
+        </div>
+        <div class="group gc-orange folded">
+          <div class="ghead"><span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span><span class="gdot"></span><span class="gname"><span class="lz">项目</span><span class="le">Projects</span></span><span class="gcount has">2/3</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab grouped gc-blue active"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">论文草稿.md</span></div>
+          <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle">日常随笔.md</span></div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">论文草稿.md</h1>
+          <p class="nt-p"><span class="lz">右上角按触发顺序堆叠演示 5 类通知。每条通知的规则出处见左下角要点。</span><span class="le">Five notice types stacked top-right in trigger order; rule references in the key-points panel.</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 通知堆叠 -->
+  <div class="notice-wrap">
+    <div class="notice ok">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+      <div>
+        <span class="lz">已展开「研究」——已替换当前窗格的 3 个标签。</span>
+        <span class="le">Expanded "Research" — replaced 3 tabs in the active pane.</span>
+        <span class="n-sub"><span class="lz">首次使用提示：按住 Ctrl/Cmd 展开可改为追加模式</span><span class="le">First-use hint: hold Ctrl/Cmd to append instead of replacing</span></span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="notice warn">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg>
+      <div>
+        <span class="lz">已收起「写作」：2 个成员因已固定未关闭。</span>
+        <span class="le">Collapsed "Writing": 2 members were left open because they are pinned.</span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="notice err">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>
+      <div>
+        <span class="lz">该标签已固定，请先取消固定再加入分组。</span>
+        <span class="le">This tab is pinned — unpin it before adding it to a group.</span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="notice warn">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></svg>
+      <div>
+        <span class="lz">检测到配置文件同步冲突，已加载最新版本。</span>
+        <span class="le">A config sync conflict was detected — the newest version was loaded.</span>
+        <span class="n-sub"><span class="lz">冲突副本已保留，未自动删除</span><span class="le">The conflict copy was kept, never auto-deleted</span></span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+
+    <div class="notice warn">
+      <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg>
+      <div>
+        <span class="lz">本次更改尚未写入磁盘，将自动重试。</span>
+        <span class="le">The last change has not been written to disk yet — retrying automatically.</span>
+        <span class="n-sub"><span class="lz">内存状态不受影响，可继续操作</span><span class="le">In-memory state is unaffected; you can keep working</span></span>
+      </div>
+      <button class="n-close"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

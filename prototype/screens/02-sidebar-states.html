@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 02 侧边栏交互状态</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><span class="lz">右侧编辑区为状态编号对照；各状态并排布置在侧边栏中</span><span class="le">The editor lists numbered states; all are staged in the sidebar</span></li>
+      <li><kbd>F3-4</kbd> <span class="lz">成员悬停 × = 移出分组</span><span class="le">Hover × on member = remove from group</span></li>
+      <li><kbd>F1/R8</kbd> <span class="lz">行内重命名 + 固定 10 色色板（无自由取色），当前色带选中环</span><span class="le">Inline rename + fixed 10-color palette, current color ringed</span></li>
+      <li><kbd>F3-5</kbd> <span class="lz">组内拖拽 = 数组重排；拖到其他组头 = 移入该组尾部（R2：一个文件只属一组，移动并提示原组）</span><span class="le">Drag within group = reorder; drop on another group = move (R2)</span></li>
+      <li><kbd>R9</kbd> <span class="lz">空分组合法，给出拖入提示</span><span class="le">Empty groups are legal, with a drag-in hint</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <div class="ribbon">
+      <button class="rib-btn" title="快速切换"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></button>
+      <button class="rib-btn" title="命令面板"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg></button>
+      <div class="rib-sep"></div>
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-tabs">
+        <div class="stab"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">文件</span><span class="le">Files</span></div>
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="lz">分组</span><span class="le">Groups</span></div>
+      </div>
+
+      <div class="view-head">
+        <span class="vh-title">Tab Tray</span>
+        <button class="vh-new"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span class="lz">新建分组</span><span class="le">New group</span></button>
+      </div>
+
+      <div class="glist">
+
+        <!-- ① 成员悬停态 -->
+        <div class="group gc-blue">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">研究</span><span class="le">Research</span></span>
+            <span class="gcount has">3/5</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="members">
+            <div class="member force-hover">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">论文草稿.md</span>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member msusp">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">参考笔记.md</span>
+              <svg class="i12 mpin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg>
+              <button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member mmiss">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+              <span class="mname">旧笔记.md</span>
+              <span class="mflag"><span class="lz">丢失</span><span class="le">missing</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ③ 拖拽排序：拖动「日常」→ 插入指示线 -->
+        <div class="group gc-orange">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">项目</span><span class="le">Projects</span></span>
+            <span class="gcount has">2/3</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+        </div>
+
+        <div class="drop-line" title="插入位指示线（拖拽排序中）"></div>
+
+        <div class="group gc-gray folded dragging">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">日常</span><span class="le">Daily</span></span>
+            <span class="gcount">0/2</span>
+          </div>
+        </div>
+
+        <!-- ④ 空分组（R9） -->
+        <div class="group gc-pink">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">收集箱</span><span class="le">Inbox</span></span>
+            <span class="gcount">0/0</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="gempty"><span class="lz">将文件拖入此处，或右键文件「添加到分组」</span><span class="le">Drag files here, or right-click a file → "Add to group"</span></div>
+        </div>
+
+        <!-- ② 行内重命名 + 色板弹层（置于列表末尾，弹层落在空白处不遮挡其他组） -->
+        <div class="group gc-green">
+          <div class="ghead">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <input class="rename" value="写作">
+            <span class="rename-acts">
+              <button class="gact" title="确认（Enter）"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
+              <button class="gact" title="取消（Esc）"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </span>
+          </div>
+          <div class="popover gpalette open">
+            <span class="sw gc-red"></span>
+            <span class="sw gc-orange"></span>
+            <span class="sw gc-yellow"></span>
+            <span class="sw gc-teal"></span>
+            <span class="sw gc-indigo"></span>
+            <span class="sw gc-purple"></span>
+            <span class="sw gc-pink"></span>
+            <span class="sw gc-gray"></span>
+            <span class="sw gc-blue"></span>
+            <span class="sw gc-green cur"></span>
+          </div>
+          <div class="members">
+            <div class="member"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">章节大纲.md</span><button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+            <div class="member"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">人物设定.md</span><button class="mx" title="移出分组"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 主区：状态对照说明 -->
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab active"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="ttitle"><span class="lz">状态对照</span><span class="le">State legend</span></span></div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title"><span class="lz">侧边栏交互状态对照</span><span class="le">Sidebar states</span></h1>
+          <div class="nt-path"><span class="lz">编号与左侧边栏中的布置一一对应</span><span class="le">Numbers map to the staged sidebar</span></div>
+          <p class="nt-li">① <b><span class="lz">成员悬停态</span><span class="le">Member hover</span></b> — <span class="lz">行尾出现 × 移出按钮（F3-4）；挂起/丢失成员同屏对照</span><span class="le">× remove button appears (F3-4); suspended/missing members shown alongside</span></p>
+          <p class="nt-li">② <b><span class="lz">行内重命名 + 色板</span><span class="le">Inline rename + palette</span></b> — <span class="lz">Enter 确认 / Esc 取消；10 色固定色板（R8），当前色带选中环，点击色格可预览</span><span class="le">Enter confirms / Esc cancels; fixed 10-color palette (R8) with current-color ring, click to preview</span></p>
+          <p class="nt-li">③ <b><span class="lz">拖拽排序</span><span class="le">Drag reorder</span></b> — <span class="lz">「日常」被拖起（半透明），项目与日常之间显示强调色插入线；拖到其他组头 = 移入该组尾部（F3-5）</span><span class="le">"Daily" being dragged (dimmed); accent insertion line between groups; drop on a group header = move to its end (F3-5)</span></p>
+          <p class="nt-li">④ <b><span class="lz">空分组</span><span class="le">Empty group</span></b> — <span class="lz">合法（R9），显示拖入引导文案</span><span class="le">Legal (R9), with a drag-in hint</span></p>
+          <p class="nt-li">⑤ <b><span class="lz">组头悬停</span><span class="le">Group head hover</span></b> — <span class="lz">出现 展开 ▸▸ / 收起 ◂◂ / 更多 ⋯ 三个操作钮，计数暂时隐藏避免拥挤</span><span class="le">Expand / collapse / more buttons appear; the count hides to avoid crowding</span></p>
+          <div class="callout"><span class="lz">拖拽落点规则：组头 = 移入该组尾部；成员行之间 = 精确插入位。文件从文件树拖入侧边栏分组走同一落点规则（F3-3）。</span><span class="le">Drop rules: on a group header = append to that group; between member rows = precise insertion. Dragging files from the file tree (F3-3) follows the same rules.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+</body>
+</html>

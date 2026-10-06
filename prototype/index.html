@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray · UI 原型总览</title>
+<link rel="stylesheet" href="./assets/tokens.css">
+<link rel="stylesheet" href="./assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+</div>
+
+<div class="wrap">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-kicker">Tab Tray · UI Prototype</div>
+    <h1><span class="lz">Tab Tray 界面原型</span><span class="le">Tab Tray UI Prototypes</span></h1>
+    <p>
+      <span class="lz">Obsidian 桌面端插件：浏览器式标签「固定 + 分组」收纳。本套原型覆盖 PRD v1.3 的全部 UI 触点——分组侧边栏、紧凑固定行、五成员入口、删除确认、设置页、命令面板与 Notice 体系；默认暗色主题，右上角可切换亮色与中英文。纯静态 HTML/CSS/JS，无构建，直接浏览器打开。</span>
+      <span class="le">An Obsidian desktop plugin providing browser-style tab grouping and pinning. This prototype set covers every UI touchpoint of PRD v1.3 — group sidebar, compact pinned row, five member entries, delete confirmation, settings, command palette and notices. Dark theme by default; light theme and zh/en switching top-right. Pure static HTML/CSS/JS.</span>
+    </p>
+    <p class="fine">
+      <span class="lz">依据：PRD v1.3 · 方案设计 v1.1 · 增补决议——按分组染色纳入原型范围（2026-10-06 用户确认，原 v1.1 方向提前呈现）</span>
+      <span class="le">Basis: PRD v1.3 · SD v1.1 · Addition — group coloring included per user confirmation (2026-10-06, originally a v1.1 direction)</span>
+    </p>
+  </div>
+
+  <!-- 屏幕导航 -->
+  <div class="grid-nav">
+    <a class="nav-card" href="./screens/01-workspace.html">
+      <div class="nc-num">01</div>
+      <div class="nc-title"><span class="lz">主工作区全景</span><span class="le">Workspace</span></div>
+      <div class="nc-tags"><span class="tag">F1</span><span class="tag">F2</span><span class="tag">F4</span><span class="tag">R6</span><span class="tag">R11</span><span class="tag">染色</span></div>
+    </a>
+    <a class="nav-card" href="./screens/02-sidebar-states.html">
+      <div class="nc-num">02</div>
+      <div class="nc-title"><span class="lz">侧边栏交互状态</span><span class="le">Sidebar states</span></div>
+      <div class="nc-tags"><span class="tag">F1</span><span class="tag">F3-4/5</span><span class="tag">R8</span><span class="tag">R9</span></div>
+    </a>
+    <a class="nav-card" href="./screens/03-tabbar.html">
+      <div class="nc-num">03</div>
+      <div class="nc-title"><span class="lz">标签栏与紧凑固定行</span><span class="le">Tab bar &amp; pinned row</span></div>
+      <div class="nc-tags"><span class="tag">F4</span><span class="tag">染色</span><span class="tag">tooltip</span></div>
+    </a>
+    <a class="nav-card" href="./screens/04-context-menus.html">
+      <div class="nc-num">04</div>
+      <div class="nc-title"><span class="lz">右键菜单</span><span class="le">Context menus</span></div>
+      <div class="nc-tags"><span class="tag">F3-1</span><span class="tag">F3-2</span><span class="tag">R5</span></div>
+    </a>
+    <a class="nav-card" href="./screens/05-modals.html">
+      <div class="nc-num">05</div>
+      <div class="nc-title"><span class="lz">删除确认弹窗</span><span class="le">Delete confirmation</span></div>
+      <div class="nc-tags"><span class="tag">A1</span><span class="tag">R5</span><span class="tag">R10</span></div>
+    </a>
+    <a class="nav-card" href="./screens/06-settings.html">
+      <div class="nc-num">06</div>
+      <div class="nc-title"><span class="lz">设置页</span><span class="le">Settings</span></div>
+      <div class="nc-tags"><span class="tag">F4</span><span class="tag">F8</span><span class="tag">R9</span><span class="tag">F5</span><span class="tag">赞助</span></div>
+    </a>
+    <a class="nav-card" href="./screens/07-command-palette.html">
+      <div class="nc-num">07</div>
+      <div class="nc-title"><span class="lz">命令面板</span><span class="le">Command palette</span></div>
+      <div class="nc-tags"><span class="tag">F6</span><span class="tag">D10</span><span class="tag">D12</span></div>
+    </a>
+    <a class="nav-card" href="./screens/08-notices.html">
+      <div class="nc-num">08</div>
+      <div class="nc-title"><span class="lz">通知 Notice 体系</span><span class="le">Notices</span></div>
+      <div class="nc-tags"><span class="tag">F2</span><span class="tag">F5</span><span class="tag">R5</span><span class="tag">M7</span></div>
+    </a>
+  </div>
+
+  <!-- 设计令牌：中性色 -->
+  <div class="spec-section">
+    <h2><span class="lz">设计令牌 · 中性色（Obsidian 默认主题对齐）</span><span class="le">Tokens · Neutrals (Obsidian native)</span></h2>
+    <div class="sec-desc"><span class="lz">全部界面构件取值自 Obsidian 默认主题变量体系，插件视觉与宿主零违和；亮色一列为对应推导值。</span><span class="le">Every surface derives from Obsidian's default theme variables; the light column shows derived values.</span></div>
+    <div class="tok-grid">
+      <div class="tok-row"><span class="tok-c" style="background:#1e1e1e"></span><span class="lz">背景 · 编辑器</span><span class="le">Background · editor</span><code>#1e1e1e / #ffffff</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#161616"></span><span class="lz">背景 · 侧栏</span><span class="le">Background · sidebar</span><code>#161616 / #f2f3f5</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#282828"></span><span class="lz">背景 · 弹层</span><span class="le">Background · elevated</span><code>#282828 / #ffffff</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#2e2e2e"></span><span class="lz">边框</span><span class="le">Border</span><code>#2e2e2e / #dcdcdc</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#dadada"></span><span class="lz">文字 · 主</span><span class="le">Text · primary</span><code>#dadada / #232323</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#9a9a9a"></span><span class="lz">文字 · 次</span><span class="le">Text · secondary</span><code>#9a9a9a / #666666</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#7c7c7c"></span><span class="lz">文字 · 弱</span><span class="le">Text · faint</span><code>#7c7c7c / #999999</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#8b6cf0"></span><span class="lz">强调色（跟随主题）</span><span class="le">Accent (theme-aware)</span><code>#8b6cf0 / #7852e0</code></div>
+      <div class="tok-row"><span class="tok-c" style="background:#e35d6b"></span><span class="lz">错误 / 危险</span><span class="le">Error / danger</span><code>#e35d6b / #c94452</code></div>
+    </div>
+  </div>
+
+  <!-- 设计令牌：分组色板 -->
+  <div class="spec-section">
+    <h2><span class="lz">设计令牌 · 分组身份色板（R8 · 固定 10 色）</span><span class="le">Tokens · Group palette (R8, fixed 10 colors)</span></h2>
+    <div class="sec-desc"><span class="lz">唯一的插件自有色彩资产：仅用于色点、组色胶囊、色板弹层与固定行角标，不做大面积铺色。每色明暗各调一版保证对比度。</span><span class="le">The plugin's only proprietary color asset: used for dots, capsules, the palette popover and pinned-row badges — never as large fills. Each color has tuned dark/light variants.</span></div>
+    <div class="swatches">
+      <div class="swatch"><div class="sw-c" style="background:#e35d6b"></div><div class="sw-l"><b>red</b><code>#e35d6b / #c94452</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#e88a3a"></div><div class="sw-l"><b>orange</b><code>#e88a3a / #bf6516</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#d9b13b"></div><div class="sw-l"><b>yellow</b><code>#d9b13b / #9a7b00</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#57bd6f"></div><div class="sw-l"><b>green</b><code>#57bd6f / #3d9a50</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#2fb8b0"></div><div class="sw-l"><b>teal</b><code>#2fb8b0 / #158a84</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#5b97ea"></div><div class="sw-l"><b>blue</b><code>#5b97ea / #2f6fbb</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#8389ec"></div><div class="sw-l"><b>indigo</b><code>#8389ec / #545bc7</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#a277f2"></div><div class="sw-l"><b>purple</b><code>#a277f2 / #7e4ec9</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#e46fb0"></div><div class="sw-l"><b>pink</b><code>#e46fb0 / #c2498f</code></div></div>
+      <div class="swatch"><div class="sw-c" style="background:#9b9b9b"></div><div class="sw-l"><b>gray</b><code>#9b9b9b / #7e7e7e</code></div></div>
+    </div>
+  </div>
+
+  <!-- 字阶 -->
+  <div class="spec-section">
+    <h2><span class="lz">字阶（Inter / system-ui + 中文回退）</span><span class="le">Type scale (Inter / system-ui + CJK fallbacks)</span></h2>
+    <div class="type-row"><div class="type-demo" style="font-size:28px;font-weight:700"><span class="lz">编辑器标题 28px</span><span class="le">Editor title 28px</span></div><div class="type-meta">28 / 700</div></div>
+    <div class="type-row"><div class="type-demo" style="font-size:20px;font-weight:700"><span class="lz">设置页标题 20px</span><span class="le">Settings title 20px</span></div><div class="type-meta">20 / 700</div></div>
+    <div class="type-row"><div class="type-demo" style="font-size:13px;font-weight:500"><span class="lz">界面主字 13px——组名、文件名、菜单项</span><span class="le">UI primary 13px — group names, files, menu items</span></div><div class="type-meta">13 / 500–400</div></div>
+    <div class="type-row"><div class="type-demo" style="font-size:12px;color:var(--text-muted)"><span class="lz">界面辅助 12px——说明文案、要点</span><span class="le">UI secondary 12px — descriptions</span></div><div class="type-meta">12 / 400</div></div>
+    <div class="type-row"><div class="type-demo" style="font-size:11px;color:var(--text-faint)"><span class="lz">计数与角标 11px——3/5 · 丢失 · Tab Tray</span><span class="le">Counts &amp; badges 11px — 3/5 · missing · Tab Tray</span></div><div class="type-meta">11 / 400</div></div>
+  </div>
+
+  <!-- 组件样例 -->
+  <div class="spec-section">
+    <h2><span class="lz">组件样例</span><span class="le">Component gallery</span></h2>
+    <div class="gallery">
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">分组条目 · 悬停态 + 成员三态</span><span class="le">Group row · hover + member states</span></div>
+        <div class="comp-list gc-blue">
+          <div class="ghead force-hover">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="gname"><span class="lz">研究</span><span class="le">Research</span></span>
+            <span class="gcount has">3/5</span>
+            <span class="gacts">
+              <button class="gact" title="展开（替换当前窗格）· Ctrl/Cmd = 追加"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></button>
+              <button class="gact" title="收起"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></button>
+              <button class="gact" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+            </span>
+          </div>
+          <div class="member" style="margin-left:24px"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">论文草稿.md</span></div>
+          <div class="member msusp" style="margin-left:24px"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">参考笔记.md</span><svg class="i12 mpin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg></div>
+          <div class="member mmiss" style="margin-left:24px"><svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="mname">旧笔记.md</span><span class="mflag"><span class="lz">丢失</span><span class="le">missing</span></span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">标签胶囊（染色）+ 紧凑固定行</span><span class="le">Tab capsules + compact pinned row</span></div>
+        <div class="tabbar">
+          <div class="pinrow">
+            <button class="pintab gc-blue" data-tip="参考笔记.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg><span class="pindot"></span></button>
+            <button class="pintab" data-tip="模板.md"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></button>
+          </div>
+          <div class="tabs">
+            <div class="tab grouped gc-blue active"><span class="tdot"></span><span class="ttitle">论文草稿.md</span></div>
+            <div class="tab grouped gc-orange"><span class="tdot"></span><span class="ttitle">周报-十月.md</span></div>
+            <div class="tab"><span class="ttitle">日常随笔.md</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">按钮 / 开关 / 危险态</span><span class="le">Buttons / toggles / danger</span></div>
+        <div class="comp-btns">
+          <button class="btn btn-primary"><span class="lz">主按钮</span><span class="le">Primary</span></button>
+          <button class="btn"><span class="lz">次按钮</span><span class="le">Secondary</span></button>
+          <button class="btn btn-danger"><span class="lz">删除分组</span><span class="le">Delete group</span></button>
+        </div>
+        <div class="comp-toggles" style="margin-top:14px">
+          <span class="toggle on"></span><span class="lz">开启</span><span class="le">On</span>
+          <span class="toggle"></span><span class="lz">关闭</span><span class="le">Off</span>
+          <span class="toggle disabled"></span><span class="lz">置灰（降级）</span><span class="le">Greyed (degraded)</span>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">色板弹层（R8 · 当前色带选中环）</span><span class="le">Palette popover (R8, current-color ring)</span></div>
+        <div class="gpalette open" style="position:static;display:grid;">
+          <span class="sw gc-red"></span><span class="sw gc-orange"></span><span class="sw gc-yellow"></span><span class="sw gc-teal"></span><span class="sw gc-indigo"></span>
+          <span class="sw gc-purple"></span><span class="sw gc-pink"></span><span class="sw gc-gray"></span><span class="sw gc-blue cur"></span><span class="sw gc-green"></span>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">通知样例（语义色条）</span><span class="le">Notice sample (semantic rail)</span></div>
+        <div class="notice warn" style="position:static">
+          <svg class="i n-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg>
+          <div><span class="lz">已收起「写作」：2 个成员因已固定未关闭。</span><span class="le">Collapsed "Writing": 2 members were left open because they are pinned.</span></div>
+        </div>
+      </div>
+
+      <div class="comp">
+        <div class="comp-l"><span class="lz">行内重命名 + 插入指示线</span><span class="le">Inline rename + drop indicator</span></div>
+        <div class="comp-list gc-green">
+          <div class="rename-row">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <input class="rename" value="写作">
+            <span class="rename-acts">
+              <button class="gact"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></button>
+              <button class="gact"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </span>
+          </div>
+          <div class="drop-line"></div>
+          <div class="ghead"><span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span><span class="gdot"></span><span class="gname"><span class="lz">项目</span><span class="le">Projects</span></span><span class="gcount has">2/3</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 范围与决策 -->
+  <div class="spec-section">
+    <h2><span class="lz">范围与决策记录</span><span class="le">Scope &amp; decisions</span></h2>
+    <ul class="decisions">
+      <li><span class="ok">✓</span> <b><span class="lz">原型载体</span><span class="le">Vehicle</span></b> — <span class="lz">模拟完整 Obsidian 桌面外壳（标题栏/Ribbon/侧栏/标签栏/编辑器），F2/F4/F3-2 嵌在真实位置呈现。</span><span class="le">Full Obsidian desktop shell mock; F2/F4/F3-2 shown in their real positions.</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">计数呈现</span><span class="le">Counts</span></b> — <span class="lz">组行一体显示 n/m（m = 成员数），悬停 tooltip 说明「已打开 n / 共 m」。</span><span class="le">Groups show n/m inline (m = member count), tooltip spells out "n of m open".</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">侧栏折叠</span><span class="le">Sidebar folding</span></b> — <span class="lz">组头左侧 ▾/▸ 仅折叠侧栏显示，不影响 F2 展开/收起语义（PRD 未定义，按确认补充）。</span><span class="le">The ▾/▸ chevron only folds the sidebar display; F2 semantics untouched (added per confirmation).</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">按分组染色</span><span class="le">Group coloring</span></b> — <span class="lz">2026-10-06 用户确认纳入原型：组色胶囊环绕成员标签头（Chrome 式，方案 A 色点为默认，方案 B 组名 chip 供比选）+ 紧凑固定行组色角标；单文件不染色。对应 PRD §2.3 v1.1 方向。</span><span class="le">Confirmed 2026-10-06: group-color capsules around member tabs (Chrome-style; variant A default, B name chip for comparison) + pinned-row color badges; single files stay uncolored. PRD §2.3 v1.1 direction.</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">双语与主题</span><span class="le">i18n &amp; theme</span></b> — <span class="lz">全部屏幕支持中英切换（F8）与明暗双主题（R8 色板各调两版）；文件名保持原文（库内容不翻译）。</span><span class="le">All screens switch zh/en (F8) and dark/light (R8, two tuned palette variants); file names stay verbatim.</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">交互深度</span><span class="le">Interactivity</span></b> — <span class="lz">静态高保真 + 关键弹层可点击演示（组菜单、色板、主题/语言/染色开关）；无真实逻辑、无框架、无构建。</span><span class="le">Static hi-fi with clickable popovers (group menu, palette, theme/lang/color toggles); no real logic, no framework, no build.</span></li>
+    </ul>
+  </div>
+
+</div>
+
+<script src="./assets/mock.js"></script>
+</body>
+</html>
