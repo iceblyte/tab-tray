@@ -21,12 +21,12 @@
     <div class="hero-kicker">Tab Tray · UI Prototype</div>
     <h1><span class="lz">Tab Tray 界面原型</span><span class="le">Tab Tray UI Prototypes</span></h1>
     <p>
-      <span class="lz">Obsidian 桌面端插件：浏览器式标签「固定 + 分组」收纳。本套原型覆盖 PRD v1.3 的全部 UI 触点——分组侧边栏、紧凑固定行、五成员入口、删除确认、设置页、命令面板与 Notice 体系；默认暗色主题，右上角可切换亮色与中英文。纯静态 HTML/CSS/JS，无构建，直接浏览器打开。</span>
-      <span class="le">An Obsidian desktop plugin providing browser-style tab grouping and pinning. This prototype set covers every UI touchpoint of PRD v1.3 — group sidebar, compact pinned row, five member entries, delete confirmation, settings, command palette and notices. Dark theme by default; light theme and zh/en switching top-right. Pure static HTML/CSS/JS.</span>
+      <span class="lz">Obsidian 桌面端插件：浏览器式标签「固定 + 分组」收纳。本套原型覆盖 PRD v1.4 的全部 UI 触点——分组侧边栏、紧凑固定行、六成员入口、标签管理面板、删除确认、设置页、命令面板与 Notice 体系；默认暗色主题，右上角可切换亮色与中英文。纯静态 HTML/CSS/JS，无构建，直接浏览器打开。</span>
+      <span class="le">An Obsidian desktop plugin providing browser-style tab grouping and pinning. This prototype set covers every UI touchpoint of PRD v1.4 — group sidebar, compact pinned row, six member entries, the tab manager panel, delete confirmation, settings, command palette and notices. Dark theme by default; light theme and zh/en switching top-right. Pure static HTML/CSS/JS.</span>
     </p>
     <p class="fine">
-      <span class="lz">依据：PRD v1.3 · 方案设计 v1.1 · 增补决议——按分组染色纳入原型范围（2026-10-06 用户确认，原 v1.1 方向提前呈现）</span>
-      <span class="le">Basis: PRD v1.3 · SD v1.1 · Addition — group coloring included per user confirmation (2026-10-06, originally a v1.1 direction)</span>
+      <span class="lz">依据：PRD v1.4 · 方案设计 v1.2 · 增补决议——按分组染色纳入原型范围（2026-10-06 用户确认）；标签管理面板 F9 纳入原型（2026-10-25 用户提出并确认进 v1、排期 W4）</span>
+      <span class="le">Basis: PRD v1.4 · SD v1.2 · Additions — group coloring included per user confirmation (2026-10-06); Tab Manager panel F9 included per user request and confirmed into v1 (2026-10-25, scheduled W4)</span>
     </p>
   </div>
 
@@ -71,6 +71,11 @@
       <div class="nc-num">08</div>
       <div class="nc-title"><span class="lz">通知 Notice 体系</span><span class="le">Notices</span></div>
       <div class="nc-tags"><span class="tag">F2</span><span class="tag">F5</span><span class="tag">R5</span><span class="tag">M7</span></div>
+    </a>
+    <a class="nav-card" href="./screens/09-tab-manager.html">
+      <div class="nc-num">09</div>
+      <div class="nc-title"><span class="lz">标签管理面板（新增）</span><span class="le">Tab manager panel</span></div>
+      <div class="nc-tags"><span class="tag">F9</span><span class="tag">F3-6</span><span class="tag">R11</span><span class="tag">R12</span><span class="tag">v1 · W4</span></div>
     </a>
   </div>
 
@@ -217,6 +222,7 @@
       <li><span class="ok">✓</span> <b><span class="lz">计数呈现</span><span class="le">Counts</span></b> — <span class="lz">组行一体显示 n/m（m = 成员数），悬停 tooltip 说明「已打开 n / 共 m」。</span><span class="le">Groups show n/m inline (m = member count), tooltip spells out "n of m open".</span></li>
       <li><span class="ok">✓</span> <b><span class="lz">侧栏折叠</span><span class="le">Sidebar folding</span></b> — <span class="lz">组头左侧 ▾/▸ 仅折叠侧栏显示，不影响 F2 展开/收起语义（PRD 未定义，按确认补充）。</span><span class="le">The ▾/▸ chevron only folds the sidebar display; F2 semantics untouched (added per confirmation).</span></li>
       <li><span class="ok">✓</span> <b><span class="lz">按分组染色</span><span class="le">Group coloring</span></b> — <span class="lz">2026-10-06 用户确认纳入原型：组色胶囊环绕成员标签头（Chrome 式，方案 A 色点为默认，方案 B 组名 chip 供比选）+ 紧凑固定行组色角标；单文件不染色。对应 PRD §2.3 v1.1 方向。</span><span class="le">Confirmed 2026-10-06: group-color capsules around member tabs (Chrome-style; variant A default, B name chip for comparison) + pinned-row color badges; single files stay uncolored. PRD §2.3 v1.1 direction.</span></li>
+      <li><span class="ok">✓</span> <b><span class="lz">标签管理面板（F9）</span><span class="le">Tab Manager (F9)</span></b> — <span class="lz">2026-10-25 用户提出并确认进 v1（排期 W4）：左侧 ribbon 第二图标 toggle 右侧面板；跨窗口去重的打开标签列表按分组归属分节，支持聚焦/关闭/固定/加入分组/搜索/一键收纳；NiceTab 的会话保存、休眠、远程同步等按 PRD F9 裁剪。</span><span class="le">Added 2026-10-25 and confirmed into v1 (scheduled W4) per user request: second ribbon icon toggles a right-side panel; cross-window deduped open-tab list sectioned by group, with focus/close/pin/add-to-group/search/tidy-all; NiceTab's session saving, hibernation and sync are cut per PRD F9.</span></li>
       <li><span class="ok">✓</span> <b><span class="lz">双语与主题</span><span class="le">i18n &amp; theme</span></b> — <span class="lz">全部屏幕支持中英切换（F8）与明暗双主题（R8 色板各调两版）；文件名保持原文（库内容不翻译）。</span><span class="le">All screens switch zh/en (F8) and dark/light (R8, two tuned palette variants); file names stay verbatim.</span></li>
       <li><span class="ok">✓</span> <b><span class="lz">交互深度</span><span class="le">Interactivity</span></b> — <span class="lz">静态高保真 + 关键弹层可点击演示（组菜单、色板、主题/语言/染色开关）；无真实逻辑、无框架、无构建。</span><span class="le">Static hi-fi with clickable popovers (group menu, palette, theme/lang/color toggles); no real logic, no framework, no build.</span></li>
     </ul>

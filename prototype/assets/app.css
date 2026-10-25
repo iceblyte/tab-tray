@@ -193,6 +193,41 @@ body.color-off .dot-ind { background: var(--text-faint); }
 
 .gempty { font-size: 12px; color: var(--text-faint); padding: 2px 8px 6px 24px; }
 
+/* ---------- 标签管理面板（F9 · 右侧边栏） ---------- */
+.sidebar.right { border-right: none; border-left: 1px solid var(--border); }
+.tm-tools { display: flex; gap: 6px; padding: 0 10px 8px; }
+.tm-search {
+  flex: 1; min-width: 0; height: 26px; padding: 0 9px;
+  background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-normal); font-size: 12.5px; outline: none; font-family: inherit;
+}
+.tm-search::placeholder { color: var(--text-faint); }
+.tm-collapse {
+  height: 26px; padding: 0 9px; border-radius: 6px;
+  border: 1px solid var(--border); color: var(--text-muted);
+  font-size: 12px; display: inline-flex; align-items: center; gap: 5px; flex: none;
+}
+.tm-collapse:hover { background: var(--bg-hover); color: var(--text-normal); }
+.tsec { position: relative; margin: 1px 0; }
+.tsec-head {
+  display: flex; align-items: center; gap: 6px;
+  height: 28px; padding: 0 6px; border-radius: 6px;
+  font-size: 13px; color: var(--text-normal); cursor: default; user-select: none;
+}
+.tsec-head:hover { background: var(--bg-hover); }
+.tsec-head .tsec-name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500; }
+.tsec.empty .tsec-name { color: var(--text-faint); font-weight: 400; }
+.tpane {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px; flex: none;
+  background: var(--bg-hover); color: var(--text-faint); font-variant-numeric: tabular-nums;
+}
+.tflag {
+  font-size: 10px; padding: 1px 6px; border-radius: 4px;
+  background: var(--bg-active); color: var(--text-muted); flex: none;
+}
+.member.tentry { padding-right: 6px; }
+.member.tentry.active-row { background: var(--bg-active); color: var(--text-normal); }
+
 /* 行内重命名（F1） */
 .rename-row { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 6px; }
 .rename {

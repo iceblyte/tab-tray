@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | 产品名 | **Tab Tray**（插件 ID：`tab-tray`） |
-| 上游需求 | [PRD v1.3（需求基线，2026-10-05 评审修订吸收）](./PRD.md) |
-| 文档状态 | **v1.1 —— v1.0 吸收评审意见三处补全（D19–D21），关键选型已确认** |
-| 日期 | 2026-10-05 |
+| 上游需求 | [PRD v1.4（需求基线，2026-10-25 平台复核 + F9 增补）](./PRD.md) |
+| 文档状态 | **v1.2 —— v1.1 吸收评审意见三处补全（D19–D21）；2026-10-25 Obsidian 1.14 平台复核（D22–D24）与 F9 标签管理面板设计增补，D22/D23 已同日经用户确认** |
+| 日期 | 2026-10-05（v1.2 修订 2026-10-25） |
 
 **本文档与 PRD 的分工**：PRD 回答「做什么、为什么、做到什么程度算完」；本文档回答「怎么做、用什么做、分几步做、做不成怎么办」。PRD 中标注 ✅ 的结论本文直接引用；PRD 中 ❓/🔶 的假设本文一律降级为 **Spike 验证项**（§4.4），不当作事实写进设计。
 
@@ -32,7 +32,7 @@
 
 ### 1.1 一句话架构
 
-一个**单实例** Obsidian 桌面插件：**框架无关的核心层**（状态机 + 持久化引擎）是心脏，四类**薄适配层**（工作区引擎、Svelte 侧边栏、DOM 紧凑固定行、菜单/命令/拖拽集成）挂在核心层的事件上；一切成员变更汇入**唯一变更 API**，一切变更最终**防抖原子落盘**。
+一个**单实例** Obsidian 桌面插件：**框架无关的核心层**（状态机 + 持久化引擎）是心脏，四类**薄适配层**（工作区引擎、Svelte 视图〔分组侧边栏 F1 + 标签管理面板 F9〕、DOM 紧凑固定行、菜单/命令/拖拽集成）挂在核心层的事件上；一切成员变更汇入**唯一变更 API**，一切变更最终**防抖原子落盘**。
 
 ### 1.2 设计原则（后续所有细节的裁判）
 
@@ -43,7 +43,7 @@
 | P3 | **数据是资产**：写路径按「随时断电」设计——防抖合并、串行写队列、原子替换、`.bak` 轮换、损坏回退、冲突仲裁；卸载不清理（R10） | PRD F5/R10 |
 | P4 | **降级不崩溃**：特性检测失败 → 置灰开关；菜单 source 失配 → DOM 兜底；拖拽格式未知 → 提示并退回右键入口 | PRD F4/H3 |
 | P5 | **视图可丢弃**：侧边栏与固定行只是 Store 的订阅者，随时销毁重建不损数据；视图未开时命令与计数照常工作（F6） | PRD F6 |
-| P6 | **入口归一**：F3 五个入口 + 命令面板 = 同一变更 API；互斥规则（R5）在 Store 层强制，UI 层不可绕过 | PRD F3/A2 |
+| P6 | **入口归一**：F3 六个入口 + 命令面板 = 同一变更 API；互斥规则（R5）在 Store 层强制，UI 层不可绕过 | PRD F3/A2 |
 
 ### 1.3 架构图
 
@@ -68,6 +68,7 @@ flowchart TB
 
     subgraph UI["视图层（可丢弃的订阅者 P5）"]
         SB["分组侧边栏<br/>Svelte 5 组件 F1"]
+        TM["标签管理面板<br/>Svelte 5 组件 F9"]
         ROW["紧凑固定行<br/>DOM 原地重整 F4"]
     end
 
@@ -93,7 +94,7 @@ flowchart TB
 | 组件 | 选型 | 版本基线 | 角色 |
 |------|------|----------|------|
 | 语言 | TypeScript（strict） | 5.x | 全部源码 |
-| 运行环境 | Obsidian Desktop | ≥ 1.13.0（安装器 Electron 43） | 唯一运行时 |
+| 运行环境 | Obsidian Desktop | ≥ 1.14.0（D22，v1.4 修订；安装器 Electron 43） | 唯一运行时 |
 | 构建 | esbuild + esbuild-svelte | esbuild 0.2x | 产物单文件 `main.js`（IIFE） |
 | 视图 | Svelte 5（runes） | 5.x | 仅侧边栏视图（F1） |
 | 测试 | Vitest | 4.1+ | 核心层单元测试 |
@@ -248,14 +249,17 @@ export interface ObsidianPort {
 
 | 事实 | 值 | 来源状态 |
 |------|-----|----------|
-| 当前桌面版本 | 1.13.x（2026-07/08）；1.14.0 已出现于 changelog | ✅ 官方 changelog |
-| 安装器内核 | Electron v43（1.13.4 起 43.1.1 → 43.3.0） | ✅ 官方 changelog |
-| **minAppVersion** | **`1.13.0`**（🔶 D5：F4 所依赖的标签头 DOM 形态以 1.13.x 时代为准——竞品 Pinned Tabs Row 同样要求 1.13+；把「测过的版本」作为承诺下限，高于它的行为由 M8 矩阵守护） | 🔶 推导 |
+| 当前桌面版本 | **1.14.5 公开（2026-10-22，Electron 43.8.3）；1.15.0 catalyst（2026-10-22）**（2026-10-25 复核；原基线 1.13.x 已被自动更新收敛） | ✅ 官方 changelog |
+| 安装器内核 | Electron v43（1.14.5 = 43.8.3）——**仍是 43 线**，§「可用 Web 平台能力」口径不变 | ✅ 官方 changelog |
+| **minAppVersion** | **`1.14.0`**（✅ D22，2026-10-25 用户确认：原 1.13.0 的依据是「1.13.x 时代 DOM 形态」；现 1.13 用户已被自动更新收敛，测试矩阵以 1.14.x 为主版本执行——承诺下限与实测版本对齐；高于它的行为由 M8 矩阵守护） | ✅ 已确认 |
+| 1.14 库外文件 | 可打开 vault 之外的 Markdown 文件（1.14.2 catalyst → 1.14.4 公开）；此类标签无 vault 相对路径，1.15.0 修复「重命名库外文件关闭其标签」佐证其行为有怪癖 → **R12**：不入组、不计数、引擎不清理；判定走 vault 索引（🧪V0f 确认 `view.file` 表现与最佳判定路径） | ✅ 官方 changelog + 设计规避 |
+| 1.14 官方 tab CSS 变量 | 新增 `--tab-inner-*` / `--tab-container-*` 前缀变量（1.14.3+）——F4 紧凑固定行样式优先复用，缩小灰色地带；变量缺失仍走特性检测降级（D18） | ✅ 官方 changelog |
+| 1.14 RTL 翻转 | RTL 语言下整个工作区（含侧栏）翻转 → 「排左」一律实现/表述为「排到标签栏**起始侧**」（flex order 方向感知天然兼容）；RTL 全量测试不列入 v1 验收 | ✅ 官方 changelog（1.14.0） |
 | isDesktopOnly | `true`（PRD 非目标：移动端） | ✅ PRD §1.4 |
 | 插件实例模型 | **每 vault 单实例，运行于主窗口上下文**；Popout 只是独立 `Document`，非独立插件实例 | ✅ 官方 popout 迁移指南（v0.15 架构） |
 | pin 变化事件 | **官方不存在**；可行路径 = `layout-change` + 全 leaf 快照 diff | ✅ 检索核实（PRD F4 括注的 "pinned-change" 应理解为自建派生信号） |
 | 可用 Web 平台能力 | Electron 43 内核下 `structuredClone`、`crypto.randomUUID`、`popover`、`:has()` 等全部可用（按 Chromium 130+ 全量口径保守设计） | ✅ 推导（保守口径） |
-| 三平台差异（路径） | 路径唯一来源 = vault API（`TFile.path`），无手输路径入口；**入库/比对前一律过路径归一化**（D21，§3.2 不变量 6）——统一 POSIX `/` 等分隔符边缘；**不折叠大小写**（大小写敏感平台会制造假碰撞），一致性由单一来源保证 | ✅ 设计规避 |
+| 三平台差异（路径） | 路径唯一来源 = vault API（`TFile.path`），无手输路径入口；**入库/比对前一律过路径归一化**（D21，§3.2 不变量 6）——统一 POSIX `/` 等分隔符边缘；**不折叠大小写**（大小写敏感平台会制造假碰撞），一致性由单一来源保证；库外文件路径永不入库（R12） | ✅ 设计规避 |
 
 ### 2.7 小件决策清单（一次定完，避免实现期反复）
 
@@ -297,16 +301,17 @@ export interface ObsidianPort {
 | `core/persist.ts` | 持久化引擎：防抖、串行队列、原子写、.bak、回退、冲突仲裁 | F5 | types, port |
 | `core/migrate.ts` | schemaVersion 迁移链（纯函数） | F5 | types |
 | `core/port.ts` | ObsidianPort 接口定义 | D9 | — |
-| `workspace/plan.ts` | 展开/收起/计数的**纯决策函数** | F2, R6/R11 | types |
+| `workspace/plan.ts` | 展开/收起/计数的**纯决策函数**（leaf 快照仅含 vault 内文件，库外 leaf 按 R12 处理） | F2, R6/R11/R12 | types |
 | `workspace/execute.ts` | 决策的薄执行器（调 workspace API） | F2 | plan, obsidian |
-| `workspace/pin-tracker.ts` | layout-change → 快照 diff → pinChanged 信号；同时产出计数快照 | F4, R6 | obsidian |
+| `workspace/pin-tracker.ts` | layout-change → 快照 diff → pinChanged / openCounts / **tabList** 三信号 | F4, F9, R6 | obsidian |
 | `workspace/file-follow.ts` | vault rename/delete → store 跟随/标记丢失 | F7, R4 | store |
 | `workspace/compat.ts` | 紧凑行特性检测（两级，D18） | F4 | obsidian |
 | `ui/sidebar/` | Svelte 5 侧边栏（组件 + controller） | F1 | store, i18n |
+| `ui/tab-manager/` | Svelte 5 标签管理面板（组件 + controller） | F9 | store, i18n, pin-tracker |
 | `ui/pinned-row.ts` | 标签头原地重整控制器 | F4 | pin-tracker, compat |
 | `integrations/menus.ts` | 两处右键菜单 + DOM 兜底 | F3-1/2 | store |
 | `integrations/dnd.ts` | 文件树拖入 + 侧栏内部 DnD | F3-3/5 | store |
-| `integrations/commands.ts` | 动态/全局命令 | F6 | store, execute |
+| `integrations/commands.ts` | 动态/全局命令（含「打开标签管理面板」「收起全部分组」） | F6, F9 | store, execute |
 | `settings.ts` | 设置页（语言/紧凑行开关/软阈值/赞助区） | T0, F4/F8 | store |
 | `i18n/` | en + zh-cn 字典、t() | F8 | — |
 | `main.ts` | 装配、生命周期、registerEvent 纪律 | T0 | all |
@@ -370,7 +375,7 @@ export interface TrayData {
 
 ```mermaid
 sequenceDiagram
-    participant M as 变更入口（五入口/命令/设置）
+    participant M as 变更入口（六入口/命令/设置）
     participant S as TrayStore
     participant P as 持久化引擎
     participant A as DataAdapter
@@ -450,7 +455,7 @@ class TrayStore {
 }
 ```
 
-F3 的五个入口与 F6 命令全部翻译成上述 `Mutation` 值对象；**R5 互斥校验在 `member.add` 内部完成**（查询 pin-tracker 派生状态：该 path 当前存在 pinned leaf → 拒绝 + 提示文案），UI 层不重复实现也不得绕过——这正是 A2「五入口结果一致」的结构性保证，也是「砍任一入口不省实质工作量」的反向收益：入口只是视图，纪律只有一份。
+F3 的六个入口与 F6 命令全部翻译成上述 `Mutation` 值对象；**R5 互斥校验与 R12 库外拒绝在 `member.add` 内部完成**（查询 pin-tracker 派生状态：该 path 当前存在 pinned leaf → 拒绝 + 提示；vault 索引判定非库内文件 → 拒绝 + 提示），UI 层不重复实现也不得绕过——这正是 A2「六入口结果一致」的结构性保证，也是「砍任一入口不省实质工作量」的反向收益：入口只是视图，纪律只有一份。
 
 #### 3.3.3 pin 追踪与挂起-回归（R6 —— Chrome 心智模型的引擎侧）
 
@@ -458,15 +463,17 @@ F3 的五个入口与 F6 命令全部翻译成上述 `Mutation` 值对象；**R5
 
 ```mermaid
 flowchart LR
-    LC["workspace.on layout-change<br/>（防抖 100ms）"] --> SCAN["iterateAllLeaves 快照扫描<br/>leaf.pinned + view.file.path + 所属窗口"]
+    LC["workspace.on layout-change<br/>（防抖 100ms）"] --> SCAN["iterateAllLeaves 快照扫描<br/>leaf.pinned + view.file.path + 所属窗口<br/>+ vault 索引判定 isVaultFile（R12）"]
     SCAN --> DIFF["与上次快照 diff<br/>（Map 比对，WeakRef 缓存）"]
     DIFF --> SIG1["pinChanged 信号<br/>→ 侧边栏 📌 标记 / 入口互斥查询 / 紧凑行重整"]
     DIFF --> SIG2["openCounts 信号<br/>→ 已开计数 n/m（跨窗口去重）"]
+    DIFF --> SIG3["tabList 信号<br/>→ F9 标签管理面板列表（跨窗口去重 + 分组归属标注）"]
 ```
 
 - **挂起**：成员被原生钉住 → pinChanged 扫描发现 → 侧边栏显示 📌；收起/展开替换的计划函数自动跳过；**data.json 零写动作**（状态纯派生，R6）；
 - **回归**：取消固定 → 同一 diff 管道发现 → 📌 消失、恢复普通成员——「无需任何手动操作」（A9）就是「无状态需要恢复」的自然结果；
-- **入口互斥（R5）**：`member.add` 时查询该 path 的派生 pin 状态；原生菜单层无法拦截 Obsidian 自带的「取消固定/固定」项（官方无手段），故不尝试——这正是挂起模型存在的原因（PRD v1.2 决议）。
+- **入口互斥（R5）**：`member.add` 时查询该 path 的派生 pin 状态；原生菜单层无法拦截 Obsidian 自带的「取消固定/固定」项（官方无手段），故不尝试——这正是挂起模型存在的原因（PRD v1.2 决议）；
+- **库外 leaf（R12）**：快照扫描对每个 leaf 过 vault 索引（`getAbstractFileByPath`，🧪V0f 定最终判定式）标注 `isVaultFile`；库外 leaf 进入 tabList 信号（F9 显示「库外」角标）但被 openCounts 匹配与 plan 决策显式排除——三信号共享同一次扫描，R12 无额外扫描成本。
 
 #### 3.3.4 展开 / 收起引擎（F2，R6/R11/D4）
 
@@ -476,6 +483,7 @@ flowchart LR
 // workspace/plan.ts（纯函数，单测全覆盖）
 interface LeafSnapshot {
   path: string | null;      // null = 无文件 leaf（如空标签）
+  isVaultFile: boolean;     // false = 库外文件标签（R12，1.14 新形态）——由快照扫描经 vault 索引判定
   pinned: boolean;
   windowId: string;         // 主窗口固定 id；popout 按文档生成临时 id
   paneId: string;           // 标签容器（窗格）标识
@@ -485,7 +493,8 @@ function planExpand(mode: 'replace' | 'append',
                     members: string[],            // 组内序
                     activePaneId: string,
                     leaves: LeafSnapshot[]): ExpandPlan;
-// replace：目标 = activePane 内全部非 pinned leaf 全关（pinned 一律保留，R6）；
+// replace：目标 = activePane 内全部非 pinned 的【vault 内文件】leaf 全关（pinned 一律保留，R6；
+//          库外文件 leaf 一律保留不清理，R12——绝不能落入「无文件 leaf 清理」的范畴）；
 //          组员【全量】按序打开（D4：窗格 = 完整组员集，允许与其他窗格重复）；
 // append：组员中过滤掉当前窗口已打开者（D4：增量语义），剩余按序追加到 activePane 现有标签之后。
 
@@ -494,10 +503,16 @@ function planCollapse(group: string[],
                       leaves: LeafSnapshot[]): CollapsePlan;
 // 关闭当前窗口内所有成员 leaf（跨窗格、同文件多窗格全关）；
 // pinned 成员跳过并计数（提示「N 个成员因已固定未关闭」，F2）；
-// 其他窗口（含 Popout）的 leaf 一律不在计划内（R11）。
+// 其他窗口（含 Popout）的 leaf 一律不在计划内（R11）；
+// 关闭名单仅由成员 path 匹配生成，库外 leaf 天然不在名单内（R12 双保险）。
 
 function countOpen(members: string[], leaves: LeafSnapshot[]): number;
-// n/m 的 n：成员 path 在全部窗口 leaf 集合中的去重命中数（R11）
+// n/m 的 n：成员 path 在全部窗口【vault 内】leaf 集合中的去重命中数（R11；库外 leaf 不参与，R12）
+
+function listOpenTabs(leaves: LeafSnapshot[],
+                      groupOf: (path: string) => string | null): TabListEntry[];
+// F9 面板列表：全部窗口 leaf 按 path 去重，标注所属分组 id 与 isVaultFile；
+// 库外 leaf 以「库外」小节呈现，仅允许聚焦/关闭/固定（R12）
 ```
 
 **执行器**（`execute.ts`，薄、全部走官方 API）：
@@ -514,7 +529,8 @@ function countOpen(members: string[], leaves: LeafSnapshot[]): number;
 
 **实现路线**（PRD ✅ 已定：原地重整，参照 compact-pinned-tabs 已验证路径）：
 
-1. **纯 CSS 排左（D16）**：标签头是 header 容器的 flex 子元素 → 对 pinned leaf 的 header 加类 `.tab-tray-pinned-compact`，`styles.css` 中以 `order: -1` 排到左侧 + 隐藏标题元素 + 收缩为图标宽度。**零 DOM 移动、零内部容器**——DOM 操作只有 `classList.add/remove`，这是对 Obsidian 升级最钝感的形态；
+1. **纯 CSS 排到起始侧（D16）**：标签头是 header 容器的 flex 子元素 → 对 pinned leaf 的 header 加类 `.tab-tray-pinned-compact`，`styles.css` 中以 `order: -1` 排到标签栏**起始侧**（1.14 起 RTL 语言会翻转整个工作区，flex order 方向感知、天然兼容——「左侧」即 LTR 下的起始侧）+ 隐藏标题元素 + 收缩为图标宽度。**零 DOM 移动、零内部容器**——DOM 操作只有 `classList.add/remove`，这是对 Obsidian 升级最钝感的形态；
+   - **样式取值优先复用 1.14 官方变量**：`--tab-inner-*` / `--tab-container-*`（1.14.3+ 引入）用于尺寸/内边距与容器特征断言——官方变量既缩小灰色地带，也是**廉价的特性检测信号**（变量存在 ⇒ DOM 形态大概率未变）；变量缺失时回退到硬编码值 + 静态结构断言（D18 两级检测不变）；
 2. **事件驱动**：消费 pin-tracker 的 `pinChanged` 信号（防抖），不使用 MutationObserver（PRD F4 明确）；
 3. **leaf↔header 映射**：参照 compact-pinned-tabs 的 WeakMap 身份映射方案；具体取法（DOM 遍历推导 vs 内部属性）在 🧪Spike V0d 定案；
 4. **交互零劫持**：左键激活、右键原生菜单（经官方 `file-menu` 事件自然挂载，H3）、中键原生关闭并取消固定——我们只改视觉不改事件，与 D3「与原生生态共生」一致；tooltip 用原生 `aria-label`（悬停显示完整文件名）；
@@ -543,13 +559,14 @@ function countOpen(members: string[], leaves: LeafSnapshot[]): number;
 | F3-3 文件树拖入 | 视图容器注册 `dragover/drop`；取数优先级：`app.dragManager.draggable`（Obsidian 内部拖拽对象）→ `dataTransfer.getData('text/plain')` 解析路径 | 🧪Spike V0c 定格式；解析失败 → Notice 提示改用右键入口（P4） |
 | F3-4 悬停 × | Svelte 行内按钮 → `member.remove` | — |
 | F3-5 侧栏内拖拽 | HTML5 DnD：`application/x-tab-tray-member` 私有类型承载 `{groupId, path}`；拖到组头 = 移入该组尾部；组内落点 = 插入位指示线（rAF 节流） | — |
+| F3-6 面板右键（F9） | 标签管理面板条目右键 `Menu`「添加到分组 ▸」——子菜单构建与入口 1/2 共用同一函数；库外条目不渲染该菜单项（R12） | — |
 
-所有入口终点都是 `applyMutation`（§3.3.2）；已固定标签的「阻止 + 提示」由 Store 层统一执行（R5/Q2 ✅）。
+所有入口终点都是 `applyMutation`（§3.3.2）；已固定标签的「阻止 + 提示」与库外文件的「拒绝 + 提示」均由 Store 层统一执行（R5/Q2 ✅、R12）。
 
 #### 3.3.8 命令面板（F6）
 
 - 动态命令：每分组注册 `open-group-<groupId>` / `collapse-group-<groupId>`（id 用 groupId 稳定，D10）；重命名 = 注销重建（name 含组名）；删除分组 = 注销命令；
-- 全局命令：`new-group`、`collapse-active-group`（「当前分组」= 活动标签文件所属分组，无则提示，D12）、`open-sidebar`；
+- 全局命令：`new-group`、`collapse-active-group`（「当前分组」= 活动标签文件所属分组，无则提示，D12）、`open-sidebar`、`open-tab-manager`（F9）、`collapse-all-groups`（F9 一键收纳的同命令形态）；
 - 命令回调不触碰视图层（P5），视图关闭时完全可用（A6）；
 - 命令量随分组数线性增长（2×组数），由 R9 软阈值提示间接覆盖。
 
@@ -566,6 +583,22 @@ function countOpen(members: string[], leaves: LeafSnapshot[]): number;
 | 已开计数 | `countOpen` 跨全部窗口去重（R11 ✅） |
 | 侧边栏视图被拖入 Popout | ItemView 本身支持；Svelte 事件绑定一律挂 `contentEl` 所在 document（禁止引用全局 `document`/`window`，🧪Spike V0e 手测） |
 | 双进程同 vault | Obsidian 自身有 vault 锁（第二个进程无法打开同 vault），残余风险 = 平台行为变更，登记监控（E9），不预建机制 |
+
+#### 3.3.10 标签页管理面板（F9，v1.4 新增——✅ 2026-10-25 用户确认进 v1、排期 W4）
+
+**定位**：F1（左栏）是分组**持久资产**视图，F9（右栏）是当前打开标签的**会话**视图——两者是同一 Store 与同一快照扫描的两个订阅者，**零新增事实源、零新增扫描**（P2/P5 延伸）。
+
+| 关注点 | 方案 |
+|--------|------|
+| 视图与入口 | ItemView（viewType `tab-tray-manager`）挂右侧 leaf：`workspace.getRightLeaf(false)` + toggle（已打开则 detach，与 F1 同款逻辑）；ribbon 第二图标 + 全局命令「打开标签管理面板」 |
+| 数据来源 | pin-tracker 的 `tabList` 信号（§3.3.3，同一次 layout-change 扫描产出）：按 path 跨窗口去重 → `{path, isVaultFile, pinned, windowIds, groupId}`；分组归属由 Store 快照派生（`groupOf`），不反向存储 |
+| 渲染 | Svelte 5（D1/D20 同款桥接）；分节 = 已入组（按分组排序，组色圆点）→ 未分组 → 库外（R12，仅聚焦/关闭/固定）；同文件多窗格显示窗格数徽标，展开可见各 leaf 所在窗口 |
+| 条目操作 | 点击 = 聚焦（`workspace.revealLeaf` 或激活对应 leaf，🧪V0f 顺带确认跨窗口聚焦行为）；× = 关闭该文件**当前窗口**内全部 leaf（复用 planCollapse 的窗口过滤，R11）；右键 = 官方 `Menu`：固定/取消固定（`leaf.setPinned`）、添加到分组 ▸（F3-6，走 `applyMutation`）、关闭、关闭其他（当前窗口） |
+| 搜索过滤 | 顶部输入框 + `prepareFuzzySearch` 过滤文件名（纯视图层过滤，不触碰 Store） |
+| 一键收纳 | 顶栏按钮 = 逐组调用 collapse 计划（仅当前窗口）；固定（R6）、库外（R12）、未分组标签一律不动；同命令「收起全部分组」注册进 F6 |
+| 实时性 | 订阅 tabList + store change 两个信号；视图关闭时零成本（P5）——列表是纯派生数据，无独立状态 |
+
+**裁剪记录**（NiceTab → Obsidian 映射，PRD F9 明确裁剪的实现侧理由）：会话保存/恢复不建（F1 分组即持久会话，建第二套即违反 P2）；休眠不建（无对应工作区概念）；回收站/多选批量 = v1.1 候选（回收站需自记录 detach 事件流，属新数据管道，不与 v1 复用面重叠）。
 
 ### 3.4 错误处理与可观测性
 
@@ -615,6 +648,7 @@ tab-tray/
 │  │  └─ compat.ts            # 特性检测
 │  ├─ ui/
 │  │  ├─ sidebar/             # Svelte 5 组件 + controller + mount
+│  │  ├─ tab-manager/         # Svelte 5 标签管理面板（F9）
 │  │  └─ pinned-row.ts        # 紧凑固定行控制器
 │  ├─ integrations/
 │  │  ├─ menus.ts  ├─ dnd.ts  ├─ commands.ts
@@ -681,15 +715,16 @@ jobs:
 | V0c | 文件树拖入的内部数据格式（dragManager / dataTransfer） | 拖拽时打印两路数据 | 拿到稳定路径来源即过；拿不到 → F3-3 提示改用右键（入口不减） |
 | V0d | pin 变化检测覆盖度 + leaf↔header 映射取法 + 「当前窗口」归属判定 | 重读 compact-pinned-tabs 映射实现 + 本地 probe | layout-change 能覆盖 pin/unpin 即过；映射不可得 → F4 静态检测置灰（P4） |
 | V0e | 多窗口模型确认（新主窗口/popout 共享单实例）+ Svelte 视图拖入 popout 的事件面 | 双窗口手测脚本 | 单实例成立即过（D6 前提）；异常 → 启动 BroadcastChannel 备选设计（§2.8 记录） |
+| V0f | 1.14 库外文件标签的行为确认（R12）：`view.file` 对库外文件的表现、vault 索引判定式、`revealLeaf` 跨窗口聚焦、替换场景下库外 leaf 是否被原生 `detach` 波及 | 打开库外文件 + 打印快照字段的小脚本 | 判定式稳定即过；`view.file` 不可靠 → 改用 metadataCache/vault 遍历判定（兜底均为纯公开 API，不影响 R12 立场） |
 
 ### 4.5 里程碑与任务 DoD（对齐 PRD §7 T0–T8 与 §4.2 排期 🔶 4~6 周）
 
 | 周 | 任务（PRD） | DoD（完成的客观标准） | 对应验收 |
 |----|-------------|------------------------|----------|
-| W0 | Spike + T0 脚手架 | V0a–V0e 决策记录回填；`dev/build/test/lint/typecheck` 全通；manifest(id=tab-tray, minAppVersion 1.13.0)、i18n 骨架、设置页（语言/紧凑行开关/软阈值/赞助区）可用 | — |
+| W0 | Spike + T0 脚手架 | V0a–V0f 决策记录回填；`dev/build/test/lint/typecheck` 全通；manifest(id=tab-tray, minAppVersion 1.14.0)、i18n 骨架、设置页（语言/紧凑行开关/软阈值/赞助区）可用 | — |
 | W1–W2 | T1 数据层 + T2 侧边栏 → **M1** | persist/store/migrate 单测全绿（§5.1 清单）；侧边栏 CRUD/排序/改色/丢失标记/计数可用；**M1/M3/M4 手测过** | A1、A7 部分、A8 |
-| W3 | T3 入口 + T4 展开收起 + T6 命令 → **M2** | 五入口归一 applyMutation；plan 纯函数单测全绿；动态命令注册/注销；「替换/追加/收起」含 R6/R11/D4 全语义 | A2、A3、A4、A6、A9 |
-| W4 | T5 紧凑固定行 → **M3** | 两级特性检测；CSS 排左重整；tooltip/右键/中键原生行为；开关与置灰降级 | A5 |
+| W3 | T3 入口 + T4 展开收起 + T6 命令 → **M2** | 六入口归一 applyMutation；plan 纯函数单测全绿；动态命令注册/注销；「替换/追加/收起」含 R6/R11/R12/D4 全语义 | A2、A3、A4、A6、A9 |
+| W4 | T5 紧凑固定行 + T2b 标签管理面板（F9，✅ 已确认进 v1） → **M3** | 两级特性检测；CSS 排起始侧重整；tooltip/右键/中键原生行为；开关与置灰降级；F9 面板按 A10 全语义 | A5、A10 |
 | W5 | T7 验收执行 | **§6.2 矩阵 M1–M9 全绿**（含写盘杀进程 M9、同步冲突 M7 造数实测）+ A1–A9 全量执行记录归档 → `v0.9.0` 进入 dogfood | 全部 |
 | W6–W7 | dogfood ≥2 周（V2）+ 实装对比（V3）+ 同步漫游实测（V4） | 问题清单清零；差异化话术定稿；H5 文档结论落定 | — |
 | W8 | T8 发布 → **M4** | README(en+zh)/GIF/赞助位/变更日志；`v1.0.0` Release 三件套；社区商店提交 PR | — |
@@ -738,7 +773,7 @@ jobs:
 | migrate | v0→v1 迁移正确性；字段缺失/多余容错；非法类型拒绝 |
 | store 不变量 | R2：加入他组成员 → 移动 + 提示（D11）；R5：pinned 路径 add 被拒；R9：超软阈值放行 + 提示事件；空组合法；组重名拒绝 |
 | file-follow | rename 跟随（含组内序保持）；delete → 丢失标记（内存派生，不入盘）；文件回归 → 标记自动消失 |
-| plan（展开/收起/计数） | replace：pinned 保留、无文件 leaf 清理、组员全量开（D4）；append：已开成员过滤（D4）；collapse：跨窗格全关、他窗口隔离（R11）、pinned 跳过计数、重复多窗格全关；countOpen 跨窗口去重；丢失成员跳过 |
+| plan（展开/收起/计数/面板列表） | replace：pinned 保留、无文件 leaf 清理、组员全量开（D4）；append：已开成员过滤（D4）；collapse：跨窗格全关、他窗口隔离（R11）、pinned 跳过计数、重复多窗格全关；countOpen 跨窗口去重；丢失成员跳过；**库外 leaf（R12）：replace 中不清理、collapse 不命中、countOpen 不计入；listOpenTabs 去重/分组归属/库外标注** |
 | i18n | en/zh key 集合一致；插值参数渲染；auto 语言解析 |
 | 路径归一化 | normalizeVaultPath 边界：反斜杠替换、重复分隔符折叠、首尾斜杠剥离、trim；关键用例与官方 `normalizePath` 语义对齐（D21） |
 
@@ -756,6 +791,7 @@ jobs:
 | M7 同步冲突副本 | §3.3.1 读路径竞选 + 冲突文件只读 | 造数（手工构造 sync-conflict 文件）手测 + 单测 |
 | M8 升级一版 | P1 官方 API 面 + P4 检测降级 + compat 两级检测 | 版本发布节奏执行 |
 | M9 写盘中杀进程 | 原子写 + .bak 先行轮换 + 串行队列 | 三平台实测（V0b 预演） |
+| M10 库外文件标签 | R12 三重防线（入口拒绝 / countOpen 排除 / plan 不清理）+ tabList 库外角标 | V0f 判定式确认 + 1.14.5 实测 |
 
 ### 5.3 dogfood 脚本要点（W6–W7，≥2 周）
 
@@ -775,7 +811,7 @@ jobs:
 | D2 | Vitest 4 核心层单测 | ✅ 用户确认 | §2.4；F5 是产品主张，回归必须自动 | 低 |
 | D3 | Biome 2.5 | ✅ 用户确认 | §2.5；单工具最低维护 | 高——换 ESLint 成本半天 |
 | D4 | 展开去重：替换全量开、追加去重 | ✅ 用户确认（PRD 缺口补全） | 「窗格=该组」直觉 + 增量语义不制造重复；改动局限于 planExpand | 中——语义级决策，改前需知会用户 |
-| D5 | minAppVersion = 1.13.0；isDesktopOnly | 🔶 | 测过版本即承诺下限；移动端为 PRD 非目标 | 中——放宽需重跑验收 |
+| D5 | minAppVersion = 1.13.0；isDesktopOnly | ⛔ 被 D22 取代（v1.4 平台复核：提至 1.14.0） | 测过版本即承诺下限；移动端为 PRD 非目标 | — |
 | D6 | 单实例单写者，不建跨窗口 IPC | 🔶 | 官方 popout 架构事实（§2.6）；V0e 确认前提 | 低——若前提变，启用 §2.8 备选 |
 | D7 | 设置与分组同管 data.json，禁用 saveData | 🔶 | 消灭双写路径互踩 | 低 |
 | D8 | 手写 schema 守卫，不引 zod | 🔶 | §2.7 | 高——引入成本半天 |
@@ -786,12 +822,15 @@ jobs:
 | D13 | 备份名 `data.json.bak`；冲突副本只读 | 🔶 | 与 sync-conflict 命名族共存 | 高 |
 | D14 | 防抖 500ms + maxWait 2000ms | 🔶 | PRD ≤500ms 约束的防饿死补全 | 高 |
 | D15 | i18n：auto（跟随 Obsidian 语言）+ 手动覆盖 | 🔶 | F8 双语 | 高 |
-| D16 | 紧凑行纯 CSS `order` 排左，零 DOM 移动 | 🔶 | 对升级最钝感（§3.3.5） | 低——形态由 V0d 定案 |
+| D16 | 紧凑行纯 CSS `order` 排起始侧（1.14 RTL 翻转兼容），零 DOM 移动 | 🔶 | 对升级最钝感（§3.3.5） | 低——形态由 V0d 定案 |
 | D17 | npm + Node 24 LTS | 🔶 | §2.7 | 高 |
 | D18 | 特性检测两级：静态结构 + 运行时自检 | 🔶 | F4 降级可控（v1.3 评审条款） | 低 |
 | D19 | 收起焦点回退：原生 detach 回退 + 空窗口补空白标签 | 🔶 | 不自行跳焦，避免与原生焦点管理竞争；极端空态的可用性兜底 | 高 |
 | D20 | Svelte 桥接：组件内唯一订阅点，快照整体替换 + keyed each | 🔶 | `$effect` 退订与组件生命周期同构，无手动 unsubscribe 泄漏面 | 高 |
 | D21 | 路径入库/比对前强制归一化（core 纯函数，语义对齐官方 normalizePath） | 🔶 | 防分隔符混用与边缘未归一化输入；不折叠大小写保护 Linux 平台 | 低 |
+| D22 | minAppVersion 1.13.0 → **1.14.0**（v1.4 平台复核） | ✅ 用户确认 2026-10-25 | 1.13 用户已被自动更新收敛，测试矩阵以 1.14.x 为主版本；1.14 官方 tab CSS 变量成为 F4 的优先依赖 | 中——回退需重跑验收矩阵 |
+| D23 | F9 标签管理面板进 v1（排期 W4）；功能范围按 PRD F9 裁剪 | ✅ 用户确认 2026-10-25 | 用户 2026-10-25 提出；与 F1 共享 Store 与扫描，增量成本低；回收站/多选留 v1.1 | 中——砍掉只动 `ui/tab-manager` 与两个命令 |
+| D24 | 库外文件标签不入组、不计数、引擎不清理（R12）；tabList 信号仅给 F9 展示层 | ✅（随 v1.4 基线吸收，2026-10-25） | 库外路径不可持久绑定（R1 无解），且平台行为有怪癖（1.15.0 修复项佐证）；保持距离 = 最小维护面 | 低——平台语义级，无回退空间 |
 
 ### 6.2 PRD 追溯矩阵
 
@@ -799,13 +838,14 @@ jobs:
 |----------|----------|
 | F1 分组侧边栏 | §3.1 ui/sidebar、§2.3、§3.3.2 |
 | F2 展开/收起 + R11 | §3.3.4、§3.3.9、D4 |
-| F3 五入口 | §3.3.7、§3.3.2 |
+| F3 六入口 | §3.3.7、§3.3.2 |
 | F4 紧凑固定行 | §3.3.5、D16/D18、§4.4 V0d |
 | F5 持久化引擎 | §3.3.1、D13/D14、§5.1 |
 | F6 命令面板 | §3.3.8、D10/D12 |
 | F7 重命名跟随 | §3.3.6 |
 | F8 双语 | §2.7 i18n、D15 |
-| R1–R11 | §3.2 不变量、§3.3 全部、§3.3.9 |
+| F9 标签管理面板 | §3.3.10、§3.3.3（tabList 信号）、D23 |
+| R1–R12 | §3.2 不变量、§3.3 全部、§3.3.9、§2.6（库外文件） |
 | §6.1 A1–A9 | §5.1/§5.2 映射 |
 | §6.2 M1–M9 | §5.2 映射表 |
 | §7 T0–T8 | §4.5 里程碑 DoD |
@@ -819,6 +859,8 @@ jobs:
 | 窗格（pane） | Obsidian 的标签容器（一组标签的宿主），「替换当前窗格」的作用域 |
 | Popout Window | 从主窗口弹出的独立 OS 窗口（独立 Document，非独立插件实例） |
 | 挂起成员 | 已被原生钉住的组员（📌），收起/替换时跳过，取消固定自动回归（R6） |
+| 库外文件 | Obsidian 1.14 起可打开的 vault 之外文件；其标签不入组、不计数、不被引擎清理（R12） |
+| 起始侧 | 标签栏 flex 布局的逻辑起点（LTR = 左侧，RTL = 右侧）；F4 排布一律按起始侧表述（1.14 RTL 翻转） |
 | leaf | Obsidian 工作区最小视图单元，一个打开的标签 |
 | Spike | 开发期用最小代码验证未知项的冲刺动作 |
 | 决策/执行分离 | 复杂逻辑收进纯函数（plan），副作用隔离在薄执行器（execute）的模式 |
@@ -826,7 +868,7 @@ jobs:
 ### 6.4 参考资料（2026-10 检索来源）
 
 **官方**
-- Obsidian 官方 changelog（1.13.x Electron 43：[2026-07-30-desktop-v1.13.4](https://obsidian.md/changelog/2026-07-30-desktop-v1.13.4)、[2026-08-10-desktop-v1.13.6](https://obsidian.md/changelog/2026-08-10-desktop-v1.13.6)、[1.14.0](https://obsidian.md/changelog)）
+- Obsidian 官方 changelog（1.13.x Electron 43：[2026-07-30-desktop-v1.13.4](https://obsidian.md/changelog/2026-07-30-desktop-v1.13.4)、[2026-08-10-desktop-v1.13.6](https://obsidian.md/changelog/2026-08-10-desktop-v1.13.6)；1.14 线：[2026-09-02-desktop-v1.14.0](https://obsidian.md/changelog/2026-09-02-desktop-v1.14.0)、[2026-10-05-desktop-v1.14.4](https://obsidian.md/changelog/2026-10-05-desktop-v1.14.4)、[changelog 总索引](https://obsidian.md/changelog)——2026-10-25 复核至 1.14.5 / 1.15.0 catalyst）
 - [Popout window 支持与插件迁移指南（v0.15 架构：插件实例在主窗口上下文）](https://obsidian.md/changelog/2022-07-05-desktop-v0.15.0/) 及 Excalidraw 处理先例（[0.15.0 popout 解决方案讨论](https://github.com)）
 - [obsidian-sample-plugin](https://github.com/obsidianmd/obsidian-sample-plugin)（TS + esbuild + version-bump.mjs）
 - Obsidian 开发者文档：DataAdapter（process/rename）、file-menu 事件、Workspace 事件（PRD H3/H6 已验证）
@@ -840,5 +882,6 @@ jobs:
 
 **竞品/先例**（PRD §3.1 深查结论的代码参照）
 - [compact-pinned-tabs](https://github.com)（紧凑固定行原地重整路径：事件驱动、WeakMap 映射）
+- [NiceTab](https://github.com/web-dahuyou/NiceTab)（浏览器扩展，F9 面板的功能参照：标签列表/搜索/批量操作/一键收纳；其会话保存等裁剪理由见 §3.3.10）
 - [Drag Out](https://community.obsidian.md/plugins/drag-out) / [workbench-drag-path](https://community.obsidian.md/plugins/workbench-drag-path)（文件树拖拽与 dataTransfer 先例）
 - Group Tabs（issue #4 立项契机）、Working tabs、Vertical Tabs、Color Tab（差异化对照，见 PRD §3）

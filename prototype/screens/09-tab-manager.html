@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray 原型 · 09 标签管理面板</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="theme-dark lang-zh">
+
+<div class="demo-bar">
+  <button class="demo-btn" data-act="theme" title="切换到亮色主题">☾</button>
+  <button class="demo-btn" data-act="lang" title="Switch to English">中</button>
+  <a class="demo-btn" href="../index.html" title="返回索引">⌂</a>
+</div>
+
+<details class="notes" open>
+  <summary><span class="lz">本屏要点</span><span class="le">Key points</span></summary>
+  <div class="nbody">
+    <ul>
+      <li><kbd>F9</kbd> <span class="lz">左侧 ribbon 第二图标 toggle 右侧「标签管理」面板（✅ 已确认进 v1，排期 W4）；参考 NiceTab 按 Obsidian 语境裁剪</span><span class="le">Second ribbon icon toggles the right-side Tab Manager panel (✅ confirmed into v1, scheduled W4); adapted from NiceTab</span></li>
+      <li><kbd>F9</kbd> <span class="lz">跨窗口去重的打开标签列表：按分组归属分节（组色同 F1）→ 未分组 → 库外；同文件多窗格计 1 并显示窗格数徽标（R11 口径）</span><span class="le">Open tabs deduped across windows, sectioned by group (colors match F1) → ungrouped → external; multi-pane files count once with a pane badge (R11)</span></li>
+      <li><kbd>F9</kbd> <span class="lz">点击 = 聚焦现有标签；悬停 × = 关闭该文件在当前窗口的全部标签；右键 = 固定/取消固定 · 添加到分组（F3 第 6 入口）· 关闭 · 关闭其他</span><span class="le">Click = focus; hover × = close in current window; right-click = pin · add to group (F3 entry 6) · close · close others</span></li>
+      <li><kbd>F9</kbd> <span class="lz">顶部搜索框按文件名模糊过滤；「一键收纳」= 收起全部分组（固定、库外、未分组标签一律不动）</span><span class="le">Top search fuzzy-filters by name; "Tidy all" collapses every group (pinned, external and ungrouped tabs untouched)</span></li>
+      <li><kbd>R12</kbd> <span class="lz">库外文件标签（1.14 新形态）：显示「库外」角标，仅允许聚焦/关闭/固定，六个入口全部拒绝入组</span><span class="le">Out-of-vault tabs (new in 1.14): "external" badge; only focus/close/pin allowed — all six member entries reject them</span></li>
+      <li><kbd>P5</kbd> <span class="lz">面板是 Store 与 layout-change 派生扫描的订阅者：视图关闭零成本，不新增扫描、不新增事实源</span><span class="le">The panel subscribes to the Store and the layout-change scan: zero cost when closed, no extra scan, no second source of truth</span></li>
+    </ul>
+  </div>
+</details>
+
+<div class="window">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- Ribbon：F1 分组图标 + F9 标签管理图标 -->
+    <div class="ribbon">
+      <button class="rib-btn" title="快速切换"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></button>
+      <button class="rib-btn" title="命令面板"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg></button>
+      <div class="rib-sep"></div>
+      <button class="rib-btn" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+      <button class="rib-btn active" title="Tab Tray · 标签管理"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/><path d="M8 4v5"/></svg></button>
+    </div>
+
+    <!-- 左侧边栏：文件（示意，占位） -->
+    <div class="sidebar">
+      <div class="side-tabs">
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">文件</span><span class="le">Files</span></div>
+      </div>
+      <div class="ftree">
+        <div class="frow"><svg class="i12 fchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">项目</span><span class="le">Projects</span></div>
+        <div class="frow sub"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>论文草稿.md</div>
+        <div class="frow sub"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>周报-十月.md</div>
+        <div class="frow"><svg class="i12 fchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg><span class="lz">日常</span><span class="le">Daily</span></div>
+        <div class="frow sub"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><span class="lz">日常随笔.md</span><span class="le">Journal.md</span></div>
+      </div>
+    </div>
+
+    <!-- 主区（示意） -->
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="tabs">
+          <div class="tab grouped gc-blue active"><span class="tdot"></span><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><span class="ttitle">论文草稿.md</span><button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+          <div class="tab"><svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg><span class="ttitle">日常随笔.md</span><button class="tclose"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+        </div>
+      </div>
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">论文草稿.md</h1>
+          <div class="nt-path">项目 / 论文草稿.md</div>
+          <div class="callout">[!info] <span class="lz">本屏演示右侧的「标签管理」面板（F9）——当前窗口的打开标签只是全局列表的一个子集，面板按跨窗口去重呈现。</span><span class="le">This screen demos the right-side Tab Manager panel (F9) — the current window's open tabs are only a subset of the cross-window, deduplicated list.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧边栏：Tab Tray 标签管理（F9） -->
+    <div class="sidebar right">
+      <div class="view-head">
+        <span class="vh-title">Tab Tray · <span class="lz">标签管理</span><span class="le">Tabs</span></span>
+        <button class="vh-btn" title="更多操作"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></button>
+      </div>
+
+      <!-- 搜索 + 一键收纳 -->
+      <div class="tm-tools">
+        <input class="tm-search" placeholder="搜索打开的标签…">
+        <button class="tm-collapse" title="收起全部分组：固定、库外与未分组标签不动">
+          <svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m4 14 6 6-6-6Zm0 0 8-8m0 0h-5m5 0v5"/><path d="m20 10-6-6 6 6Zm0 0h-8"/></svg>
+          <span class="lz">一键收纳</span><span class="le">Tidy all</span>
+        </button>
+      </div>
+
+      <div class="glist">
+
+        <!-- 分组节：研究（组色同 F1） -->
+        <div class="tsec gc-blue">
+          <div class="tsec-head">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="tsec-name"><span class="lz">研究</span><span class="le">Research</span></span>
+            <span class="gcount has">3</span>
+          </div>
+          <div class="members">
+            <div class="member tentry active-row" title="已打开（本窗口 Active）→ 点击聚焦">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="mname">论文草稿.md</span>
+              <span class="tpane">×2</span>
+              <button class="mx" title="关闭该文件在当前窗口的全部标签"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member tentry" title="已打开（另一 Popout 窗口）→ 点击聚焦该窗口">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+              <span class="mname">数据整理.canvas</span>
+              <span class="tpane" title="在另一窗口打开">Popout</span>
+              <button class="mx" title="关闭该文件在当前窗口的全部标签"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="member tentry" title="已打开且已固定（R6 挂起）→ 收起/收纳时跳过">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="mname">参考笔记.md</span>
+              <svg class="i12 mpin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg>
+              <button class="mx" title="关闭该文件在当前窗口的全部标签"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 分组节：项目 -->
+        <div class="tsec gc-orange">
+          <div class="tsec-head">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot"></span>
+            <span class="tsec-name"><span class="lz">项目</span><span class="le">Projects</span></span>
+            <span class="gcount has">1</span>
+          </div>
+          <div class="members">
+            <div class="member tentry" title="已打开 → 点击聚焦">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="mname">周报-十月.md</span>
+              <button class="mx" title="关闭该文件在当前窗口的全部标签"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 未分组节 -->
+        <div class="tsec">
+          <div class="tsec-head">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="gdot" style="background:var(--text-faint)"></span>
+            <span class="tsec-name"><span class="lz">未分组</span><span class="le">Ungrouped</span></span>
+            <span class="gcount has">1</span>
+          </div>
+          <div class="members">
+            <div class="member tentry" title="未入组 → 右键可「添加到分组」">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="mname">日常随笔.md</span>
+              <button class="mx" title="关闭该文件在当前窗口的全部标签"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 库外节（R12） -->
+        <div class="tsec empty">
+          <div class="tsec-head">
+            <span class="twist"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+            <span class="tsec-name"><span class="lz">库外</span><span class="le">External</span></span>
+            <span class="gcount">1</span>
+          </div>
+          <div class="members">
+            <div class="member tentry" title="库外文件（R12）：仅可聚焦/关闭/固定，不可入组">
+              <svg class="i micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>
+              <span class="mname">meeting-notes.md</span>
+              <span class="tflag"><span class="lz">库外</span><span class="le">external</span></span>
+              <button class="mx" title="关闭"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 条目右键菜单（点击「日常随笔.md」演示） -->
+        <div class="menu" id="tm-menu" style="display:none;">
+          <div class="mi"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg><span class="lz">固定</span><span class="le">Pin</span></div>
+          <div class="mi has-sub"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span class="lz">添加到分组 ▸</span><span class="le">Add to group ▸</span><svg class="i12 msub-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            <div class="submenu">
+              <div class="mi"><span class="gdot" style="background:var(--g-blue)"></span><span class="lz">研究</span><span class="le">Research</span></div>
+              <div class="mi"><span class="gdot" style="background:var(--g-green)"></span><span class="lz">写作</span><span class="le">Writing</span></div>
+              <div class="mi"><span class="gdot" style="background:var(--g-orange)"></span><span class="lz">项目</span><span class="le">Projects</span></div>
+              <div class="msep"></div>
+              <div class="mi"><span class="gdot" style="background:var(--g-pink)"></span><span class="lz">收集箱</span><span class="le">Inbox</span></div>
+            </div>
+          </div>
+          <div class="msep"></div>
+          <div class="mi"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg><span class="lz">关闭</span><span class="le">Close</span></div>
+          <div class="mi"><svg class="i14 mico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg><span class="lz">关闭其他标签</span><span class="le">Close others</span></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="../assets/mock.js"></script>
+<script>
+/* 本屏演示：点击「未分组」条目弹出右键菜单示意 */
+(function () {
+  var menu = document.getElementById('tm-menu');
+  var trigger = document.querySelectorAll('.tsec .member.tentry')[3]; /* 未分组节条目 */
+  if (trigger && menu) {
+    trigger.addEventListener('click', function (e) {
+      var r = trigger.getBoundingClientRect();
+      var host = menu.offsetParent || document.body;
+      var hr = host.getBoundingClientRect();
+      menu.style.display = 'block';
+      menu.style.left = Math.min(r.left - hr.left, hr.width - 230) + 'px';
+      menu.style.top = (r.bottom - hr.top + 4) + 'px';
+      menu.style.zIndex = 85;
+      e.stopPropagation();
+    });
+    document.addEventListener('click', function (e) {
+      if (!menu.contains(e.target)) menu.style.display = 'none';
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') menu.style.display = 'none';
+    });
+  }
+})();
+</script>
+</body>
+</html>
