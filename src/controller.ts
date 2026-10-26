@@ -281,9 +281,15 @@ export class TrayController {
 	}
 
 	async toggleGroup(groupId: string, mode: ExpandMode = 'replace'): Promise<void> {
+		// A modifier always means "add to what is there", even when the group is
+		// already partly open — otherwise Ctrl+click would collapse instead.
+		if (mode === 'append') {
+			await this.expandGroup(groupId, 'append');
+			return;
+		}
 		const open = this.#state.openCounts.get(groupId) ?? 0;
 		if (open > 0) await this.collapseGroup(groupId);
-		else await this.expandGroup(groupId, mode);
+		else await this.expandGroup(groupId, 'replace');
 	}
 
 	async tidyAll(): Promise<void> {
@@ -300,7 +306,9 @@ export class TrayController {
 
 	/** F6: "collapse the active group" — the group owning the active file (D12). */
 	async collapseActiveGroup(): Promise<void> {
-		const active = this.#state.leaves.find((leaf) => leaf.active && leaf.path !== null);
+		const active =
+			this.#state.leaves.find((leaf) => leaf.active && leaf.path !== null) ??
+			this.#state.leaves.find((leaf) => leaf.leafId === this.#tracker.lastActiveEditorLeafId);
 		const group = active?.path ? findGroupOfPath(this.#state.data, active.path) : undefined;
 		if (!group) {
 			this.#notify(this.#i18n.t('notice.noActiveGroup'), 'info');

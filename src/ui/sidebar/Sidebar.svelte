@@ -36,6 +36,17 @@
 		renameInput.select();
 	});
 
+	function createGroup(): void {
+		const id = controller.createGroup();
+		if (!id) return;
+		// Naming is the very next thing the user wants to do; start the inline
+		// editor instead of leaving a "New group" row behind.
+		folded = folded.filter((item) => item !== id);
+		const group = controller.state.data.groups.find((item) => item.id === id);
+		renamingId = id;
+		renameValue = group?.name ?? '';
+	}
+
 	function isFolded(groupId: string): boolean {
 		return folded.includes(groupId);
 	}
@@ -308,7 +319,7 @@
 <div class="tt-view">
 	<div class="view-head">
 		<span class="vh-title">{t('view.groups.title')}</span>
-		<button class="vh-new" onclick={() => controller.createGroup()}>
+		<button class="vh-new" onclick={createGroup}>
 			<Icon name="plus" size={12} />
 			<span>{t('view.groups.newGroup')}</span>
 		</button>
