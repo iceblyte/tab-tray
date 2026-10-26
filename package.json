@@ -1,0 +1,38 @@
+{
+	"name": "tab-tray",
+	"version": "0.1.0",
+	"description": "Browser-style tab grouping and pinning for Obsidian desktop",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.mjs",
+		"build": "tsc --noEmit && node esbuild.mjs production",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"bump": "node version-bump.mjs"
+	},
+	"keywords": [
+		"obsidian",
+		"obsidian-plugin",
+		"tabs",
+		"tab-groups",
+		"pinned-tabs"
+	],
+	"author": "iceblyte",
+	"license": "MIT",
+	"engines": {
+		"node": ">=22.12"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.6.3",
+		"@types/node": "^22.10.2",
+		"esbuild": "^0.28.2",
+		"esbuild-svelte": "^0.9.5",
+		"obsidian": "^1.14.4",
+		"svelte": "^5.57.2",
+		"typescript": "^5.9.3",
+		"vitest": "^4.1.12"
+	}
+}
