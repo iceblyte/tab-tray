@@ -6,6 +6,8 @@ export const en = {
 	// Sidebar (F1)
 	'view.groups.title': 'Tab Tray',
 	'view.groups.newGroup': 'New group',
+	'view.mode.groups': 'Groups',
+	'view.mode.tabs': 'Tabs',
 	'group.defaultName': 'New group',
 	'group.expand': 'Expand (replaces the active pane) · Ctrl/Cmd = append',
 	'group.collapse': 'Collapse',
@@ -35,7 +37,6 @@ export const en = {
 	'modal.delete.confirm': 'Delete group',
 
 	// Tab manager (F9)
-	'view.tabs.title': 'Tab Tray · Tabs',
 	'tabs.search': 'Search open tabs…',
 	'tabs.tidyAll': 'Tidy all',
 	'tabs.tidyAllHint': 'Collapse every group: pinned, external and ungrouped tabs stay',

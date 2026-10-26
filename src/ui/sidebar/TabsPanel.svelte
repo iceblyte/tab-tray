@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { Menu, prepareFuzzySearch } from 'obsidian';
 	import type { TrayController } from '../../controller';
-	import type { TabListEntry } from '../../workspace/plan';
 	import type { I18nKey } from '../../i18n';
 	import { addToGroupMenuItem } from '../../integrations/menus';
+	import type { TabListEntry } from '../../workspace/plan';
 	import { baseName, iconForPath } from '../file-utils';
 	import Icon from '../Icon.svelte';
 
+	/**
+	 * F9 — the open-tab list, rendered inside the group sidebar as its second
+	 * mode. It is the same view, the same store and the same scan; only the
+	 * content differs, which is why merging the two panels removed a whole view
+	 * registration instead of adding a second source of truth.
+	 */
 	let { controller }: { controller: TrayController } = $props();
 
 	// svelte-ignore state_referenced_locally
@@ -129,38 +135,9 @@
 
 		menu.showAtMouseEvent(event);
 	}
-
-	function openHeaderMenu(event: MouseEvent): void {
-		event.stopPropagation();
-		const menu = new Menu();
-		menu.addItem((item) =>
-			item
-				.setTitle(t('cmd.collapseAllGroups'))
-				.setIcon('chevrons-left')
-				.onClick(() => {
-					void controller.tidyAll();
-				}),
-		);
-		menu.addItem((item) =>
-			item
-				.setTitle(t('cmd.openSidebar'))
-				.setIcon('archive')
-				.onClick(() => {
-					void controller.openSidebar();
-				}),
-		);
-		menu.showAtMouseEvent(event);
-	}
 </script>
 
-<div class="tt-view tt-manager">
-	<div class="view-head">
-		<span class="vh-title">{t('view.tabs.title')}</span>
-		<button class="vh-btn" title={t('group.more')} onclick={openHeaderMenu}>
-			<Icon name="more-horizontal" size={14} />
-		</button>
-	</div>
-
+<div class="tt-tabs">
 	<div class="tm-tools">
 		<input class="tm-search" bind:value={query} placeholder={t('tabs.search')} />
 		<button class="tm-collapse" title={t('tabs.tidyAllHint')} onclick={() => controller.tidyAll()}>

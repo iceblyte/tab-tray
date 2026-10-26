@@ -4,6 +4,8 @@ import type { I18nKey } from './en';
 export const zhCN: Record<I18nKey, string> = {
 	'view.groups.title': 'Tab Tray',
 	'view.groups.newGroup': '新建分组',
+	'view.mode.groups': '分组',
+	'view.mode.tabs': '标签',
 	'group.defaultName': '新分组',
 	'group.expand': '展开（替换当前窗格）· Ctrl/Cmd = 追加',
 	'group.collapse': '收起',
@@ -30,7 +32,6 @@ export const zhCN: Record<I18nKey, string> = {
 	'modal.delete.cancel': '取消',
 	'modal.delete.confirm': '删除分组',
 
-	'view.tabs.title': 'Tab Tray · 标签管理',
 	'tabs.search': '搜索打开的标签…',
 	'tabs.tidyAll': '一键收纳',
 	'tabs.tidyAllHint': '收起全部分组：固定、库外与未分组标签不动',

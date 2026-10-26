@@ -4,6 +4,7 @@
 	import type { I18nKey } from '../../i18n';
 	import { baseName, iconForPath } from '../file-utils';
 	import Icon from '../Icon.svelte';
+	import TabsPanel from './TabsPanel.svelte';
 
 	let { controller }: { controller: TrayController } = $props();
 
@@ -16,6 +17,8 @@
 
 	const t = (key: I18nKey, params?: Record<string, string | number>) =>
 		controller.i18n.t(key, params);
+
+	const mode = $derived(state.sidebarMode);
 
 	let folded = $state<string[]>([]);
 	let renamingId = $state<string | null>(null);
@@ -319,12 +322,38 @@
 <div class="tt-view">
 	<div class="view-head">
 		<span class="vh-title">{t('view.groups.title')}</span>
-		<button class="vh-new" onclick={createGroup}>
-			<Icon name="plus" size={12} />
-			<span>{t('view.groups.newGroup')}</span>
+		{#if mode === 'groups'}
+			<button class="vh-new" onclick={createGroup}>
+				<Icon name="plus" size={12} />
+				<span>{t('view.groups.newGroup')}</span>
+			</button>
+		{/if}
+	</div>
+
+	<div class="tt-seg" role="tablist">
+		<button
+			type="button"
+			class="tt-seg-btn"
+			class:active={mode === 'groups'}
+			role="tab"
+			aria-selected={mode === 'groups'}
+			onclick={() => controller.setSidebarMode('groups')}
+		>
+			{t('view.mode.groups')}
+		</button>
+		<button
+			type="button"
+			class="tt-seg-btn"
+			class:active={mode === 'tabs'}
+			role="tab"
+			aria-selected={mode === 'tabs'}
+			onclick={() => controller.setSidebarMode('tabs')}
+		>
+			{t('view.mode.tabs')}
 		</button>
 	</div>
 
+	{#if mode === 'groups'}
 	<div class="glist">
 		{#each state.data.groups as group (group.id)}
 			{@const open = state.openCounts.get(group.id) ?? 0}
@@ -500,4 +529,7 @@
 			</div>
 		{/each}
 	</div>
+	{:else}
+		<TabsPanel {controller} />
+	{/if}
 </div>

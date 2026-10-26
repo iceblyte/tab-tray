@@ -11,8 +11,7 @@ import { TabTraySettingTab } from './settings';
 import { baseName } from './ui/file-utils';
 import { PinnedRow } from './ui/pinned-row';
 import { GroupsView } from './ui/sidebar/view';
-import { TabManagerView } from './ui/tab-manager/view';
-import { VIEW_TYPE_GROUPS, VIEW_TYPE_MANAGER } from './ui/view-types';
+import { LEGACY_VIEW_TYPE_MANAGER, VIEW_TYPE_GROUPS } from './ui/view-types';
 import { probeCompactPinnedRow } from './workspace/compat';
 import { WorkspaceExecutor } from './workspace/execute';
 import { FileFollow } from './workspace/file-follow';
@@ -56,6 +55,10 @@ export default class TabTrayPlugin extends Plugin {
 		this.#pendingEvents = [];
 		for (const event of pending) this.#onPersistEvent(event);
 
+		// An earlier build shipped a second sidebar view; drop any leaf still
+		// holding it so upgrading cannot leave an "unknown view" behind.
+		this.app.workspace.detachLeavesOfType(LEGACY_VIEW_TYPE_MANAGER);
+
 		this.#registerHostSurfaces();
 		this.#startEngines();
 	}
@@ -64,7 +67,6 @@ export default class TabTrayPlugin extends Plugin {
 		// Detach our views first so Svelte unmounts and every subscription is
 		// released before the layers they point at go away.
 		this.app.workspace.detachLeavesOfType(VIEW_TYPE_GROUPS);
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_MANAGER);
 
 		// Best effort only: F5 never relies on the exit path for correctness.
 		void this.#persist?.flush();
@@ -115,7 +117,7 @@ export default class TabTrayPlugin extends Plugin {
 			executor: this.#executor,
 			i18n: this.#i18n,
 		});
-		this.#pinnedRow = new PinnedRow(this.#tracker, this.#controller);
+		this.#pinnedRow = new PinnedRow(this.app, this.#controller);
 		this.#commands = new CommandRegistry(this, this.#controller);
 
 		// D7: settings and groups share one write path, so `saveData` is never used.
@@ -124,13 +126,11 @@ export default class TabTrayPlugin extends Plugin {
 
 	#registerHostSurfaces(): void {
 		this.registerView(VIEW_TYPE_GROUPS, (leaf) => new GroupsView(leaf, this.#controller));
-		this.registerView(VIEW_TYPE_MANAGER, (leaf) => new TabManagerView(leaf, this.#controller));
 
+		// One view, one ribbon entry: the open-tab list lives inside it as the
+		// second mode, so there is nothing left to open separately.
 		this.addRibbonIcon('archive', this.#i18n.t('cmd.openSidebar'), () => {
 			void this.#controller.openSidebar();
-		});
-		this.addRibbonIcon('layout-list', this.#i18n.t('view.tabs.title'), () => {
-			void this.#controller.toggleTabManager();
 		});
 
 		this.addSettingTab(

@@ -25,8 +25,9 @@ save path, and the fallbacks are tested rather than assumed.
   their native behaviour.
 - **Group colouring** — member tab headers are tinted with their group colour.
   Files outside a group are never tinted.
-- **Tab manager panel** — every open tab across all windows, grouped by
-  ownership, with focus, close, pin, add-to-group and fuzzy search.
+- **One sidebar, two modes** — switch between the group list and a list of every
+  open tab across all windows, with focus, close, pin, add-to-group and fuzzy
+  search.
 - **Commands and hotkeys** — per-group open/collapse commands plus global ones,
   all usable with the sidebar closed.
 - **Bilingual** — English and Simplified Chinese, following Obsidian's language
@@ -48,9 +49,10 @@ Until the plugin is in the community store, install it manually:
 
 ## Usage
 
-Open the group sidebar from the ribbon (archive icon) or with the command
-**Open group sidebar**. Create a group, then add files by right-clicking them in
-the file explorer or on a tab header.
+Open the sidebar from the ribbon (archive icon) or with the command **Open group
+sidebar**. The switch at the top flips between **Groups** and **Tabs**; the
+command **Open tab manager** jumps straight to the tab list. Create a group,
+then add files by right-clicking them in the file explorer or on a tab header.
 
 Clicking a group name toggles it: it collapses if any member is open in the
 current window, and expands otherwise. Holding Ctrl/Cmd while expanding appends

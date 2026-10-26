@@ -13,7 +13,7 @@ import type { I18n } from './i18n';
 import { readDroppedFiles } from './integrations/dnd';
 import { ConfirmModal } from './ui/confirm-modal';
 import { baseName } from './ui/file-utils';
-import { VIEW_TYPE_GROUPS, VIEW_TYPE_MANAGER } from './ui/view-types';
+import { VIEW_TYPE_GROUPS } from './ui/view-types';
 import type { WorkspaceExecutor } from './workspace/execute';
 import type { FileFollow } from './workspace/file-follow';
 import type { PinTracker } from './workspace/pin-tracker';
@@ -33,6 +33,8 @@ import {
  * Svelte out of the Obsidian API and makes both views replaceable.
  */
 
+export type SidebarMode = 'groups' | 'tabs';
+
 export interface RuntimeState {
 	data: TrayData;
 	leaves: LeafSnapshot[];
@@ -41,6 +43,8 @@ export interface RuntimeState {
 	missing: ReadonlySet<string>;
 	pinned: ReadonlySet<string>;
 	compactAvailable: boolean;
+	/** Which face of the single sidebar view is showing. */
+	sidebarMode: SidebarMode;
 	/** R11: the window a click would act on right now. */
 	currentWindowId: string;
 	revision: number;
@@ -71,6 +75,7 @@ export class TrayController {
 	#state: RuntimeState;
 	#revision = 0;
 	#firstExpandShown = false;
+	#sidebarMode: SidebarMode = 'groups';
 
 	constructor(deps: ControllerDeps) {
 		this.#app = deps.app;
@@ -358,17 +363,16 @@ export class TrayController {
 		if (result.ok && languageChanged) this.#i18n.notify();
 	}
 
-	async openSidebar(): Promise<void> {
-		await this.#revealView(VIEW_TYPE_GROUPS, 'left');
+	/** F1 + F9: one view, two faces. */
+	setSidebarMode(mode: SidebarMode): void {
+		if (this.#sidebarMode === mode) return;
+		this.#sidebarMode = mode;
+		this.#refresh();
 	}
 
-	async toggleTabManager(): Promise<void> {
-		const existing = this.#findLeaf(VIEW_TYPE_MANAGER);
-		if (existing) {
-			existing.detach();
-			return;
-		}
-		await this.#revealView(VIEW_TYPE_MANAGER, 'right');
+	async openSidebar(mode?: SidebarMode): Promise<void> {
+		if (mode) this.setSidebarMode(mode);
+		await this.#revealView(VIEW_TYPE_GROUPS, 'left');
 	}
 
 	notify(message: string, kind: NoticeKind = 'info', duration = 5000): void {
@@ -406,6 +410,7 @@ export class TrayController {
 			missing: this.#fileFollow.missing(),
 			pinned,
 			compactAvailable: data.settings.compactPinnedRowAvailable,
+			sidebarMode: this.#sidebarMode,
 			currentWindowId: this.#executor.currentWindowId(),
 			revision: this.#revision,
 		};
