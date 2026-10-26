@@ -414,10 +414,6 @@
 					{/if}
 				</div>
 
-				{#if groupDrop?.groupId === group.id && !groupDrop.before}
-					<div class="drop-line"></div>
-				{/if}
-
 				{#if !isFolded(group.id)}
 					<div class="members">
 						{#each group.members as member (member.path)}
@@ -465,6 +461,10 @@
 					{#if total === 0}
 						<div class="gempty">{t('group.empty')}</div>
 					{/if}
+				{/if}
+
+				{#if groupDrop?.groupId === group.id && !groupDrop.before}
+					<div class="drop-line"></div>
 				{/if}
 
 				{#if menuGroupId === group.id}
