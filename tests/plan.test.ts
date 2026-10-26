@@ -19,6 +19,7 @@ function leaf(partial: Partial<LeafSnapshot> & { leafId: string }): LeafSnapshot
 		windowId: 'w1',
 		paneId: 'p1',
 		active: false,
+		inSidebar: false,
 		...partial,
 	};
 }
@@ -171,6 +172,23 @@ describe('listOpenTabs (F9)', () => {
 		const tabs = listOpenTabs(leaves, groupOf);
 		expect(tabs).toHaveLength(1);
 		expect(tabs[0]?.paneCount).toBe(1);
+	});
+});
+
+describe('sidebar leaves', () => {
+	it('are never counted, closed or replaced', () => {
+		const leaves: LeafSnapshot[] = [
+			leaf({ leafId: 's1', path: null, inSidebar: true, paneId: 'sidebar' }),
+			leaf({ leafId: 's2', path: 'a.md', inSidebar: true, paneId: 'sidebar' }),
+			leaf({ leafId: 'l1', path: 'a.md' }),
+		];
+
+		expect(planCollapse(['a.md'], 'w1', leaves).closeLeafIds).toEqual(['l1']);
+		expect(countOpen(['a.md'], leaves)).toBe(1);
+		expect(listOpenTabs(leaves, () => null)).toHaveLength(1);
+		expect(
+			planExpand('replace', ['a.md'], { windowId: 'w1', paneId: 'sidebar' }, leaves).closeLeafIds,
+		).toEqual([]);
 	});
 });
 

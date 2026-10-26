@@ -12,6 +12,7 @@ import {
 import type { I18n } from './i18n';
 import { readDroppedFiles } from './integrations/dnd';
 import { ConfirmModal } from './ui/confirm-modal';
+import { baseName } from './ui/file-utils';
 import { VIEW_TYPE_GROUPS, VIEW_TYPE_MANAGER } from './ui/view-types';
 import type { WorkspaceExecutor } from './workspace/execute';
 import type { FileFollow } from './workspace/file-follow';
@@ -475,9 +476,4 @@ export class TrayController {
 		await leaf.setViewState({ type, active: true });
 		await this.#app.workspace.revealLeaf(leaf);
 	}
-}
-
-function baseName(path: string): string {
-	const parts = path.split('/');
-	return parts[parts.length - 1] ?? path;
 }

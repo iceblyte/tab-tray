@@ -21,6 +21,13 @@ export interface LeafSnapshot {
 	windowId: string;
 	paneId: string;
 	active: boolean;
+	/**
+	 * True when the leaf lives in a left/right sidebar rather than a tab pane.
+	 * Such leaves are outside the tab-bar model: they are never counted,
+	 * closed or replaced, because doing so would remove a view the user
+	 * deliberately parked in the sidebar.
+	 */
+	inSidebar: boolean;
 }
 
 export type ExpandMode = 'replace' | 'append';
@@ -82,7 +89,10 @@ export function planExpand(
 	if (mode === 'append') {
 		const openInWindow = new Set(
 			leaves
-				.filter((leaf) => leaf.windowId === target.windowId && leaf.path && leaf.isVaultFile)
+				.filter(
+					(leaf) =>
+						!leaf.inSidebar && leaf.windowId === target.windowId && leaf.path && leaf.isVaultFile,
+				)
 				.map((leaf) => leaf.path as string),
 		);
 		return {
@@ -94,7 +104,7 @@ export function planExpand(
 	}
 
 	const paneLeaves = leaves.filter(
-		(leaf) => leaf.windowId === target.windowId && leaf.paneId === target.paneId,
+		(leaf) => !leaf.inSidebar && leaf.windowId === target.windowId && leaf.paneId === target.paneId,
 	);
 	const closeLeafIds = paneLeaves
 		.filter((leaf) => !leaf.pinned && (leaf.path === null || leaf.isVaultFile))
@@ -131,6 +141,7 @@ export function planCollapse(
 
 	const relevant = leaves.filter(
 		(leaf) =>
+			!leaf.inSidebar &&
 			leaf.windowId === windowId &&
 			leaf.isVaultFile &&
 			leaf.path !== null &&
@@ -153,7 +164,7 @@ export function countOpen(members: string[], leaves: LeafSnapshot[]): number {
 	const memberSet = new Set(members);
 	const open = new Set<string>();
 	for (const leaf of leaves) {
-		if (!leaf.isVaultFile || leaf.path === null) continue;
+		if (leaf.inSidebar || !leaf.isVaultFile || leaf.path === null) continue;
 		if (memberSet.has(leaf.path)) open.add(leaf.path);
 	}
 	return open.size;
@@ -167,13 +178,12 @@ export function listOpenTabs(
 	const byPath = new Map<string, TabListEntry>();
 
 	for (const leaf of leaves) {
-		if (leaf.path === null) continue;
+		if (leaf.inSidebar || leaf.path === null) continue;
 
 		const existing = byPath.get(leaf.path);
 		if (existing) {
 			existing.leafIds.push(leaf.leafId);
 			if (!existing.windowIds.includes(leaf.windowId)) existing.windowIds.push(leaf.windowId);
-			existing.paneCount = countDistinctPanes(leaves, existing.leafIds);
 			existing.active = existing.active || leaf.active;
 			existing.pinned = existing.pinned || leaf.pinned;
 			continue;
@@ -213,7 +223,9 @@ export function planOpenMember(
 	windowId: string,
 	leaves: LeafSnapshot[],
 ): { kind: 'focus'; leafId: string } | { kind: 'open' } {
-	const candidates = leaves.filter((leaf) => leaf.isVaultFile && leaf.path === path);
+	const candidates = leaves.filter(
+		(leaf) => !leaf.inSidebar && leaf.isVaultFile && leaf.path === path,
+	);
 	if (candidates.length === 0) return { kind: 'open' };
 
 	const local = candidates.find((leaf) => leaf.windowId === windowId);
@@ -224,7 +236,7 @@ export function planOpenMember(
 /** F9 ×: close every tab of this file inside the triggering window. */
 export function planCloseFile(path: string, windowId: string, leaves: LeafSnapshot[]): string[] {
 	return leaves
-		.filter((leaf) => leaf.windowId === windowId && leaf.path === path)
+		.filter((leaf) => !leaf.inSidebar && leaf.windowId === windowId && leaf.path === path)
 		.map((leaf) => leaf.leafId);
 }
 
@@ -236,6 +248,7 @@ export function planCloseOthers(path: string, windowId: string, leaves: LeafSnap
 	return leaves
 		.filter(
 			(leaf) =>
+				!leaf.inSidebar &&
 				leaf.windowId === windowId &&
 				leaf.isVaultFile &&
 				!leaf.pinned &&

@@ -662,11 +662,8 @@ body.theme-light {
 	margin: 0;
 }
 
-/* Too many icons: scroll the pinned area instead of squeezing normal tabs. */
-.workspace-tab-header-container-inner:has(.tab-tray-pinned-compact) {
-	overflow-x: auto;
-	scrollbar-width: thin;
-}
+/* Overflow is left to Obsidian's own tab bar: the icons keep a fixed width and
+   never shrink, so normal tabs compress first, exactly like a browser. */
 
 /* ---------- group colouring (v1, user-confirmed) ----------
    The dot is a pseudo-element, so colouring inserts no nodes either. */

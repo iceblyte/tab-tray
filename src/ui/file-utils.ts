@@ -26,7 +26,7 @@ export function iconForPath(path: string): string {
 		case 'wav':
 		case 'm4a':
 		case 'ogg':
-			return 'audio-file';
+			return 'file-audio';
 		case 'mp4':
 		case 'webm':
 		case 'mov':

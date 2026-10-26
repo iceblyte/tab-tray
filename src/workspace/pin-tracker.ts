@@ -189,6 +189,7 @@ export class PinTracker {
 			windowId,
 			paneId: parent ? this.#idForPane(parent) : 'unknown',
 			active: leaf === activeLeaf,
+			inSidebar: isInSidebar(view.containerEl),
 		};
 	}
 
@@ -215,4 +216,15 @@ export class PinTracker {
 		this.#leafIds.set(leaf, id);
 		return id;
 	}
+}
+
+/**
+ * Sidebar leaves share the workspace model but not the tab bar. Detecting them
+ * by container is a public-DOM check; if the class names ever change the answer
+ * is `false`, which keeps the previous behaviour instead of breaking plans.
+ */
+function isInSidebar(el: HTMLElement | undefined): boolean {
+	const split = el?.closest('.workspace-split');
+	if (!split) return false;
+	return split.classList.contains('mod-left-split') || split.classList.contains('mod-right-split');
 }

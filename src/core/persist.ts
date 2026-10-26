@@ -188,8 +188,9 @@ export class PersistenceEngine {
 			return { data: createEmptyData(), source: 'empty', readOnly: true };
 		}
 
-		// Main exists but is unparsable and there is no usable backup: protect it.
-		const protectMain = !main.ok && main.reason === 'invalid';
+		// Main exists but cannot be read or parsed and there is no usable backup:
+		// protect it rather than replacing bytes we never managed to inspect.
+		const protectMain = !main.ok && (main.reason === 'invalid' || main.reason === 'unreadable');
 		if (protectMain) {
 			this.#readOnly = true;
 			this.#emit({ type: 'load-unreadable' });

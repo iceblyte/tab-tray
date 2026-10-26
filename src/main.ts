@@ -8,6 +8,7 @@ import { I18n } from './i18n';
 import { CommandRegistry } from './integrations/commands';
 import { registerMenus } from './integrations/menus';
 import { TabTraySettingTab } from './settings';
+import { baseName } from './ui/file-utils';
 import { PinnedRow } from './ui/pinned-row';
 import { GroupsView } from './ui/sidebar/view';
 import { TabManagerView } from './ui/tab-manager/view';
@@ -242,9 +243,4 @@ export default class TabTrayPlugin extends Plugin {
 			},
 		};
 	}
-}
-
-function baseName(path: string): string {
-	const parts = path.split('/');
-	return parts[parts.length - 1] ?? path;
 }

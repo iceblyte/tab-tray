@@ -250,14 +250,12 @@ export class WorkspaceExecutor {
 	#resolveTarget(windowId: string): { paneId: string; anchor: WorkspaceLeaf | null } | null {
 		const leaves = this.#tracker.snapshot.leaves;
 
-		const active = leaves.find(
-			(leaf) => leaf.active && leaf.path !== null && leaf.windowId === windowId,
-		);
+		const inWindow = leaves.filter((leaf) => !leaf.inSidebar && leaf.windowId === windowId);
+
+		const active = inWindow.find((leaf) => leaf.active && leaf.path !== null);
 		const lastId = this.#tracker.lastActiveEditorLeafId;
-		const last = lastId
-			? leaves.find((leaf) => leaf.leafId === lastId && leaf.windowId === windowId)
-			: undefined;
-		const anchorSnap = active ?? last ?? leaves.find((leaf) => leaf.windowId === windowId);
+		const last = lastId ? inWindow.find((leaf) => leaf.leafId === lastId) : undefined;
+		const anchorSnap = active ?? last ?? inWindow[0];
 
 		if (!anchorSnap) return null;
 
