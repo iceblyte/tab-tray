@@ -1,0 +1,811 @@
+/* ============================================================
+   Tab Tray — plugin styles
+   Ported from the UI prototype (prototype/assets/app.css), with
+   neutrals re-mapped onto Obsidian's own theme variables so the
+   plugin follows the user's theme instead of hard-coding colours.
+   ============================================================ */
+
+body {
+	--tt-bg-primary: var(--background-primary);
+	--tt-bg-secondary: var(--background-secondary);
+	--tt-bg-elevated: var(--background-primary);
+	--tt-border: var(--background-modifier-border);
+	--tt-border-strong: var(--background-modifier-border-hover);
+	--tt-text-normal: var(--text-normal);
+	--tt-text-muted: var(--text-muted);
+	--tt-text-faint: var(--text-faint);
+	--tt-accent: var(--interactive-accent);
+	--tt-on-accent: var(--text-on-accent);
+	--tt-error: var(--text-error);
+	--tt-error-bg: rgba(var(--color-red-rgb), 0.12);
+	--tt-hover: var(--background-modifier-hover);
+	--tt-active: var(--background-modifier-active-hover);
+	--tt-shadow-pop: var(--shadow-s);
+	--tt-shadow-win: var(--shadow-l);
+}
+
+/* R8 — the plugin's only proprietary colour asset: a fixed 10-colour
+   palette with a tuned variant per theme. Never used as a large fill. */
+body.theme-dark {
+	--tt-g-red: #e35d6b;
+	--tt-g-orange: #e88a3a;
+	--tt-g-yellow: #d9b13b;
+	--tt-g-green: #57bd6f;
+	--tt-g-teal: #2fb8b0;
+	--tt-g-blue: #5b97ea;
+	--tt-g-indigo: #8389ec;
+	--tt-g-purple: #a277f2;
+	--tt-g-pink: #e46fb0;
+	--tt-g-gray: #9b9b9b;
+}
+
+body.theme-light {
+	--tt-g-red: #c94452;
+	--tt-g-orange: #bf6516;
+	--tt-g-yellow: #9a7b00;
+	--tt-g-green: #3d9a50;
+	--tt-g-teal: #158a84;
+	--tt-g-blue: #2f6fbb;
+	--tt-g-indigo: #545bc7;
+	--tt-g-purple: #7e4ec9;
+	--tt-g-pink: #c2498f;
+	--tt-g-gray: #7e7e7e;
+}
+
+.gc-red {
+	--gc: var(--tt-g-red);
+}
+.gc-orange {
+	--gc: var(--tt-g-orange);
+}
+.gc-yellow {
+	--gc: var(--tt-g-yellow);
+}
+.gc-green {
+	--gc: var(--tt-g-green);
+}
+.gc-teal {
+	--gc: var(--tt-g-teal);
+}
+.gc-blue {
+	--gc: var(--tt-g-blue);
+}
+.gc-indigo {
+	--gc: var(--tt-g-indigo);
+}
+.gc-purple {
+	--gc: var(--tt-g-purple);
+}
+.gc-pink {
+	--gc: var(--tt-g-pink);
+}
+.gc-gray {
+	--gc: var(--tt-g-gray);
+}
+
+/* ---------- icons ---------- */
+.tt-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+}
+
+.tt-icon svg {
+	width: var(--tt-icon-size, 16px);
+	height: var(--tt-icon-size, 16px);
+}
+
+/* ---------- view shell ---------- */
+.view-content.tab-tray-view {
+	padding: 0;
+	overflow: hidden;
+}
+
+.tab-tray-view .tt-view {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	font-size: 13px;
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-view .view-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 9px 12px 7px;
+	font-size: 11px;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--tt-text-faint);
+	flex: none;
+}
+
+.tab-tray-view .view-head .vh-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.tab-tray-view .vh-btn {
+	width: 22px;
+	height: 22px;
+	border-radius: 5px;
+	display: grid;
+	place-items: center;
+	color: var(--tt-text-faint);
+	background: none;
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+.tab-tray-view .vh-btn:hover {
+	background: var(--tt-hover);
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-view .vh-new {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 11px;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--tt-text-muted);
+	padding: 2px 8px;
+	border-radius: 5px;
+	border: 1px solid var(--tt-border);
+	background: none;
+	box-shadow: none;
+	height: auto;
+	cursor: pointer;
+}
+
+.tab-tray-view .vh-new:hover {
+	background: var(--tt-hover);
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-view .glist {
+	flex: 1;
+	overflow: auto;
+	padding: 2px 6px 16px;
+	min-height: 0;
+}
+
+/* ---------- group rows (F1) ---------- */
+.tab-tray-view .group {
+	position: relative;
+	margin: 1px 0;
+}
+
+.tab-tray-view .ghead {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 30px;
+	padding: 0 6px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: var(--tt-text-normal);
+	cursor: pointer;
+	user-select: none;
+}
+
+.tab-tray-view .ghead:hover {
+	background: var(--tt-hover);
+}
+
+.tab-tray-view .ghead.drop-target {
+	background: var(--tt-active);
+	box-shadow: inset 0 0 0 1px var(--tt-accent);
+}
+
+.tab-tray-view .twist {
+	color: var(--tt-text-faint);
+	display: grid;
+	place-items: center;
+	width: 16px;
+	height: 16px;
+	padding: 0;
+	background: none;
+	border: none;
+	box-shadow: none;
+	cursor: pointer;
+	flex: none;
+}
+
+.tab-tray-view .group.folded .twist svg {
+	transform: rotate(-90deg);
+}
+
+.tab-tray-view .gdot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--gc);
+	flex: none;
+}
+
+.tab-tray-view .gdot.tt-dot-muted {
+	background: var(--tt-text-faint);
+}
+
+.tab-tray-view .gname {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-weight: 500;
+}
+
+.tab-tray-view .gcount {
+	font-size: 11px;
+	color: var(--tt-text-faint);
+	font-variant-numeric: tabular-nums;
+	flex: none;
+}
+
+.tab-tray-view .gcount.has {
+	color: var(--tt-text-muted);
+}
+
+.tab-tray-view .gacts {
+	display: none;
+	gap: 1px;
+	flex: none;
+}
+
+.tab-tray-view .ghead:hover .gacts,
+.tab-tray-view .ghead:focus-within .gacts {
+	display: flex;
+}
+
+.tab-tray-view .ghead:hover .gcount,
+.tab-tray-view .ghead:focus-within .gcount {
+	display: none;
+}
+
+.tab-tray-view .gact {
+	width: 22px;
+	height: 22px;
+	border-radius: 4px;
+	display: grid;
+	place-items: center;
+	color: var(--tt-text-muted);
+	background: none;
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+.tab-tray-view .gact:hover {
+	background: var(--tt-active);
+	color: var(--tt-text-normal);
+}
+
+/* ---------- member rows ---------- */
+.tab-tray-view .members {
+	padding: 0 0 4px 24px;
+}
+
+.tab-tray-view .member {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 26px;
+	padding: 0 6px 0 8px;
+	border-radius: 5px;
+	font-size: 13px;
+	color: var(--tt-text-muted);
+	cursor: pointer;
+	user-select: none;
+}
+
+.tab-tray-view .member:hover {
+	background: var(--tt-hover);
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-view .member .micon {
+	color: var(--tt-text-faint);
+}
+
+.tab-tray-view .mname {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.tab-tray-view .mpin {
+	color: var(--tt-g-yellow);
+	flex: none;
+}
+
+.tab-tray-view .member.mmiss .micon {
+	color: var(--tt-error);
+}
+
+.tab-tray-view .mflag {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--tt-error-bg);
+	color: var(--tt-error);
+	flex: none;
+}
+
+.tab-tray-view .mx {
+	display: none;
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+	place-items: center;
+	color: var(--tt-text-faint);
+	background: none;
+	border: none;
+	box-shadow: none;
+	padding: 0;
+	cursor: pointer;
+	flex: none;
+}
+
+.tab-tray-view .member:hover .mx,
+.tab-tray-view .member:focus-within .mx {
+	display: grid;
+}
+
+.tab-tray-view .mx:hover {
+	background: var(--tt-active);
+	color: var(--tt-error);
+}
+
+.tab-tray-view .gempty {
+	font-size: 12px;
+	color: var(--tt-text-faint);
+	padding: 2px 8px 6px 24px;
+}
+
+/* ---------- inline rename ---------- */
+.tab-tray-view .rename {
+	flex: 1;
+	min-width: 0;
+	height: 24px;
+	padding: 0 7px;
+	background: var(--tt-bg-primary);
+	border: 1px solid var(--tt-accent);
+	border-radius: 5px;
+	color: var(--tt-text-normal);
+	font-size: 13px;
+	outline: none;
+	box-shadow: none;
+}
+
+.tab-tray-view .rename-acts {
+	display: flex;
+	gap: 2px;
+	flex: none;
+}
+
+/* ---------- drag ---------- */
+.tab-tray-view .drop-line {
+	position: relative;
+	height: 2px;
+	border-radius: 1px;
+	background: var(--tt-accent);
+	margin: 2px 10px 2px 14px;
+}
+
+.tab-tray-view .drop-line::before {
+	content: '';
+	position: absolute;
+	inset-inline-start: -6px;
+	top: -2px;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--tt-accent);
+}
+
+.tab-tray-view .group.dragging {
+	opacity: 0.4;
+}
+
+/* ---------- popovers ---------- */
+.tab-tray-view .tt-popover {
+	position: absolute;
+	z-index: 60;
+	background: var(--tt-bg-elevated);
+	border: 1px solid var(--tt-border);
+	border-radius: 9px;
+	box-shadow: var(--tt-shadow-pop);
+}
+
+.tab-tray-view .gmenu {
+	inset-inline-end: 6px;
+	top: 30px;
+	min-width: 168px;
+	padding: 5px;
+}
+
+.tab-tray-view .gmenu .mi {
+	display: flex;
+	align-items: center;
+	gap: 9px;
+	padding: 6px 10px;
+	border-radius: 6px;
+	color: var(--tt-text-normal);
+	cursor: pointer;
+	white-space: nowrap;
+}
+
+.tab-tray-view .gmenu .mi:hover {
+	background: var(--tt-hover);
+}
+
+.tab-tray-view .gmenu .mi .mico {
+	color: var(--tt-text-muted);
+	display: grid;
+	place-items: center;
+}
+
+.tab-tray-view .gmenu .mi.danger,
+.tab-tray-view .gmenu .mi.danger .mico {
+	color: var(--tt-error);
+}
+
+.tab-tray-view .gmenu .msep {
+	height: 1px;
+	background: var(--tt-border);
+	margin: 4px 8px;
+}
+
+.tab-tray-view .gpalette {
+	inset-inline-start: 28px;
+	top: 32px;
+	display: grid;
+	grid-template-columns: repeat(5, 22px);
+	gap: 9px;
+	padding: 11px 13px;
+}
+
+.tab-tray-view .sw {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--gc);
+	cursor: pointer;
+	border: none;
+	padding: 0;
+	box-shadow: none;
+}
+
+.tab-tray-view .sw:hover {
+	transform: scale(1.12);
+}
+
+.tab-tray-view .sw.cur {
+	box-shadow:
+		0 0 0 2px var(--tt-bg-elevated),
+		0 0 0 4px var(--gc);
+}
+
+/* ---------- context-menu submenu (F3) ---------- */
+.menu-item.has-submenu {
+	position: relative;
+}
+
+.tab-tray-submenu {
+	display: none;
+	position: absolute;
+	inset-inline-start: calc(100% - 6px);
+	top: -6px;
+	min-width: 178px;
+	padding: 5px;
+	z-index: 100;
+}
+
+.tab-tray-submenu.is-open {
+	display: block;
+}
+
+/* ---------- tab manager (F9) ---------- */
+.tab-tray-manager-view .tm-tools {
+	display: flex;
+	gap: 6px;
+	padding: 0 10px 8px;
+	flex: none;
+}
+
+.tab-tray-manager-view .tm-search {
+	flex: 1;
+	min-width: 0;
+	height: 26px;
+	padding: 0 9px;
+	background: var(--tt-bg-primary);
+	border: 1px solid var(--tt-border);
+	border-radius: 6px;
+	color: var(--tt-text-normal);
+	font-size: 12.5px;
+	outline: none;
+	box-shadow: none;
+}
+
+.tab-tray-manager-view .tm-search::placeholder {
+	color: var(--tt-text-faint);
+}
+
+.tab-tray-manager-view .tm-collapse {
+	height: 26px;
+	padding: 0 9px;
+	border-radius: 6px;
+	border: 1px solid var(--tt-border);
+	background: none;
+	box-shadow: none;
+	color: var(--tt-text-muted);
+	font-size: 12px;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	flex: none;
+	cursor: pointer;
+}
+
+.tab-tray-manager-view .tm-collapse:hover {
+	background: var(--tt-hover);
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-manager-view .tsec {
+	position: relative;
+	margin: 1px 0;
+}
+
+.tab-tray-manager-view .tsec-head {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 28px;
+	padding: 0 6px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: var(--tt-text-normal);
+	cursor: pointer;
+	user-select: none;
+}
+
+.tab-tray-manager-view .tsec-head:hover {
+	background: var(--tt-hover);
+}
+
+.tab-tray-manager-view .tsec-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-weight: 500;
+}
+
+.tab-tray-manager-view .tsec.empty .tsec-name {
+	color: var(--tt-text-faint);
+	font-weight: 400;
+}
+
+.tab-tray-manager-view .tpane {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	flex: none;
+	background: var(--tt-hover);
+	color: var(--tt-text-faint);
+	font-variant-numeric: tabular-nums;
+}
+
+.tab-tray-manager-view .tflag {
+	font-size: 10px;
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: var(--tt-active);
+	color: var(--tt-text-muted);
+	flex: none;
+}
+
+.tab-tray-manager-view .member.tentry {
+	padding-inline-end: 6px;
+}
+
+.tab-tray-manager-view .member.tentry.active-row {
+	background: var(--tt-active);
+	color: var(--tt-text-normal);
+}
+
+.tab-tray-manager-view .tm-empty {
+	padding: 10px 12px;
+	font-size: 12px;
+	color: var(--tt-text-faint);
+}
+
+/* ---------- compact pinned row (F4) ----------
+   In-place restyle only: a class, `order` and a width. No DOM is moved. */
+.workspace-tab-header.tab-tray-pinned-compact {
+	order: -1;
+	flex: 0 0 auto;
+	width: 38px;
+	min-width: 38px;
+	max-width: 38px;
+	padding: 0;
+	position: relative;
+}
+
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner {
+	padding: 0;
+	justify-content: center;
+}
+
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-title,
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-close-button {
+	display: none;
+}
+
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-icon {
+	margin: 0;
+}
+
+/* Too many icons: scroll the pinned area instead of squeezing normal tabs. */
+.workspace-tab-header-container-inner:has(.tab-tray-pinned-compact) {
+	overflow-x: auto;
+	scrollbar-width: thin;
+}
+
+/* ---------- group colouring (v1, user-confirmed) ----------
+   The dot is a pseudo-element, so colouring inserts no nodes either. */
+.workspace-tab-header.tab-tray-grouped {
+	border-radius: 7px;
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 50%, transparent);
+}
+
+.workspace-tab-header.tab-tray-grouped .workspace-tab-header-inner::before {
+	content: '';
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--tt-group-color);
+	flex: none;
+	margin-inline-end: 6px;
+}
+
+.workspace-tab-header.tab-tray-grouped.is-active {
+	background: color-mix(in srgb, var(--tt-group-color) 14%, var(--background-primary));
+}
+
+.workspace-tab-header.tab-tray-pinned-compact.tab-tray-grouped::after {
+	content: '';
+	position: absolute;
+	inset-inline-end: 6px;
+	inset-block-end: 5px;
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: var(--tt-group-color);
+}
+
+/* ---------- notices ---------- */
+.notice.tab-tray-notice {
+	border-inline-start: 3px solid var(--interactive-accent);
+}
+
+.notice.tab-tray-notice-warn {
+	border-inline-start-color: var(--color-yellow);
+}
+
+.notice.tab-tray-notice-error {
+	border-inline-start-color: var(--color-red);
+}
+
+.notice.tab-tray-notice-ok {
+	border-inline-start-color: var(--color-green);
+}
+
+/* ---------- modal ---------- */
+.tt-modal-body {
+	color: var(--text-muted);
+	line-height: 1.7;
+	font-size: 13.5px;
+}
+
+.tt-modal-body b {
+	color: var(--text-normal);
+}
+
+.tt-modal-acts {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 18px;
+}
+
+/* ---------- settings ---------- */
+.tab-tray-settings-header h2 {
+	margin-bottom: 2px;
+}
+
+.tab-tray-settings-header p {
+	margin-top: 0;
+	color: var(--text-faint);
+	font-size: var(--font-ui-smaller);
+}
+
+.tab-tray-setting-note {
+	margin: 8px 0 16px;
+	padding: 11px 14px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	background: var(--background-secondary);
+	color: var(--text-faint);
+	font-size: 12.5px;
+	line-height: 1.7;
+}
+
+.tab-tray-setting-note.mod-warning {
+	border-inline-start: 3px solid var(--color-yellow);
+	color: var(--text-muted);
+}
+
+.tab-tray-setting-note code {
+	font-family: var(--font-monospace);
+	font-size: 11.5px;
+	background: var(--background-modifier-active-hover);
+	border-radius: 4px;
+	padding: 1px 5px;
+}
+
+.tab-tray-setting-degraded .setting-item-control {
+	opacity: 0.45;
+}
+
+.tab-tray-soft-limit {
+	width: 76px;
+	text-align: center;
+}
+
+.tab-tray-sponsor {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+	color: var(--text-accent);
+	text-decoration: none;
+}
+
+.tab-tray-sponsor:hover {
+	text-decoration: underline;
+}
+
+.tab-tray-sponsor-icon {
+	display: inline-flex;
+	color: var(--color-pink);
+}
+
+/* Group menu items are buttons for keyboard access; strip the host's button chrome. */
+.tab-tray-view .gmenu button.mi {
+	width: 100%;
+	height: auto;
+	background: none;
+	border: none;
+	box-shadow: none;
+	text-align: start;
+	font-size: 13px;
+	font-weight: 400;
+	padding: 6px 10px;
+}
