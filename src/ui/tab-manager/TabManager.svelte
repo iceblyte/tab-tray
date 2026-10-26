@@ -208,6 +208,7 @@
 								class:active-row={entry.active}
 								role="button"
 								tabindex="0"
+								title={entry.path}
 								onclick={() => onEntryClick(entry)}
 								onkeydown={(event) => onEntryKeydown(event, entry)}
 								oncontextmenu={(event) => onContextMenu(event, entry)}
