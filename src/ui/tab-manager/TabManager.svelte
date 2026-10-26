@@ -216,10 +216,14 @@
 								<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
 								<span class="mname">{baseName(entry.path)}</span>
 								{#if entry.paneCount > 1}
-									<span class="tpane">{t('tabs.badge.panes', { count: entry.paneCount })}</span>
+									<span class="tpane" title={t('tabs.badge.panesHint', { count: entry.paneCount })}>
+										{t('tabs.badge.panes', { count: entry.paneCount })}
+									</span>
 								{/if}
 								{#if isPopout(entry)}
-									<span class="tpane">{t('tabs.badge.popout')}</span>
+									<span class="tpane" title={t('tabs.badge.popoutHint')}>
+										{t('tabs.badge.popout')}
+									</span>
 								{/if}
 								{#if entry.pinned}
 									<Icon name="pin" size={12} cls="mpin" />

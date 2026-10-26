@@ -28,6 +28,12 @@ export interface LeafSnapshot {
 	 * deliberately parked in the sidebar.
 	 */
 	inSidebar: boolean;
+	/**
+	 * True only for the "new tab" view. Replace-expand may clear these, and
+	 * nothing else without a vault path — an out-of-vault tab that reports no
+	 * file must never be swept up by the blank-tab rule (R12).
+	 */
+	isEmptyTab: boolean;
 }
 
 export type ExpandMode = 'replace' | 'append';
@@ -107,7 +113,7 @@ export function planExpand(
 		(leaf) => !leaf.inSidebar && leaf.windowId === target.windowId && leaf.paneId === target.paneId,
 	);
 	const closeLeafIds = paneLeaves
-		.filter((leaf) => !leaf.pinned && (leaf.path === null || leaf.isVaultFile))
+		.filter((leaf) => !leaf.pinned && (leaf.isVaultFile || leaf.isEmptyTab))
 		.map((leaf) => leaf.leafId);
 
 	const pinnedInPane = new Set(

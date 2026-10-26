@@ -61,6 +61,11 @@ export default class TabTrayPlugin extends Plugin {
 	}
 
 	override onunload(): void {
+		// Detach our views first so Svelte unmounts and every subscription is
+		// released before the layers they point at go away.
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE_GROUPS);
+		this.app.workspace.detachLeavesOfType(VIEW_TYPE_MANAGER);
+
 		// Best effort only: F5 never relies on the exit path for correctness.
 		void this.#persist?.flush();
 		this.#commands?.dispose();

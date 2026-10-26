@@ -20,6 +20,7 @@ function leaf(partial: Partial<LeafSnapshot> & { leafId: string }): LeafSnapshot
 		paneId: 'p1',
 		active: false,
 		inSidebar: false,
+		isEmptyTab: false,
 		...partial,
 	};
 }
@@ -36,6 +37,15 @@ describe('planExpand — replace (D4/R6/R12)', () => {
 	it('closes unpinned vault tabs and blank tabs in the target pane only', () => {
 		const plan = planExpand('replace', ['a.md'], { windowId: 'w1', paneId: 'p1' }, leaves);
 		expect(plan.closeLeafIds.sort()).toEqual(['l1', 'l4']);
+	});
+
+	it('never treats an out-of-vault tab without a path as a blank tab', () => {
+		const externalNoPath = [
+			leaf({ leafId: 'x1', path: null, isVaultFile: false, isEmptyTab: false }),
+			leaf({ leafId: 'x2', path: null, isEmptyTab: true }),
+		];
+		const plan = planExpand('replace', ['a.md'], { windowId: 'w1', paneId: 'p1' }, externalNoPath);
+		expect(plan.closeLeafIds).toEqual(['x2']);
 	});
 
 	it('keeps pinned and out-of-vault tabs untouched', () => {

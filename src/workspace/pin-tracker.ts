@@ -190,6 +190,7 @@ export class PinTracker {
 			paneId: parent ? this.#idForPane(parent) : 'unknown',
 			active: leaf === activeLeaf,
 			inSidebar: isInSidebar(view.containerEl),
+			isEmptyTab: view.getViewType() === 'empty',
 		};
 	}
 

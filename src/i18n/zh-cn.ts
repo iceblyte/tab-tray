@@ -38,6 +38,8 @@ export const zhCN: Record<I18nKey, string> = {
 	'tabs.section.external': '库外',
 	'tabs.badge.external': '库外',
 	'tabs.badge.panes': '×{count}',
+	'tabs.badge.panesHint': '在 {count} 个窗格中打开',
+	'tabs.badge.popoutHint': '在另一个窗口打开',
 	'tabs.badge.popout': 'Popout',
 	'tabs.empty': '当前没有打开的标签',
 	'tabs.noResults': '没有匹配的标签',

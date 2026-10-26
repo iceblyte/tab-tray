@@ -43,6 +43,8 @@ export const en = {
 	'tabs.section.external': 'External',
 	'tabs.badge.external': 'external',
 	'tabs.badge.panes': '×{count}',
+	'tabs.badge.panesHint': 'Open in {count} panes',
+	'tabs.badge.popoutHint': 'Open in another window',
 	'tabs.badge.popout': 'Popout',
 	'tabs.empty': 'No open tabs',
 	'tabs.noResults': 'No matching tabs',
