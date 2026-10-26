@@ -312,7 +312,16 @@ export class PersistenceEngine {
 			}
 		}
 
-		await this.#port.process(mainPath, () => json);
+		try {
+			await this.#port.process(mainPath, () => json);
+		} catch (error) {
+			// Some adapters refuse `process()` on a path that does not exist yet
+			// (first install). Creating the file once is enough; every later
+			// write goes through the atomic path again.
+			if (await this.#port.exists(mainPath)) throw error;
+			await this.#port.writeText(mainPath, json);
+		}
+
 		this.#emit({ type: 'persist-ok', preservedAs });
 	}
 

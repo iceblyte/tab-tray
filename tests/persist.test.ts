@@ -271,6 +271,23 @@ describe('write path (F5)', () => {
 		expect(JSON.parse(port.files.get(MAIN)?.content ?? '{}').groups[0].id).toBe('recovered');
 	});
 
+	it('creates the file when the adapter refuses process() on a missing path', async () => {
+		const port = new FakePort();
+		// No main file seeded: simulates a fresh install.
+		port.fail(MAIN, 'process');
+
+		const engine = makeEngine(port);
+		const events: PersistEvent[] = [];
+		engine.on((event) => events.push(event));
+		await engine.load();
+		engine.bind(() => makeData(['first']));
+		await engine.flush();
+
+		expect(port.files.has(MAIN)).toBe(true);
+		expect(JSON.parse(port.files.get(MAIN)?.content ?? '{}').groups[0].id).toBe('first');
+		expect(events.some((e) => e.type === 'persist-ok')).toBe(true);
+	});
+
 	it('stops writing after dispose', async () => {
 		const port = new FakePort();
 		port.seed(MAIN, json(makeData()));
