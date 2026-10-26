@@ -1,43 +1,46 @@
 import type { App } from 'obsidian';
 
 /**
- * F4 / D18 — two-level feature detection.
+ * F4 / D18 — feature probe for the compact pinned row.
  *
- * The compact pinned row is the only part of the plugin that leans on internal
- * DOM. Everything here is a *probe*: it must never throw, and a negative answer
- * only greys out one switch (P4 — degrade, never crash).
+ * Deliberately lenient: it only checks that a real editor tab header exposes the
+ * inner container and the title element, because that is all the implementation
+ * touches. Anything stricter (a specific icon element, a computed `display`)
+ * produced false negatives on workspaces whose first header happened to be a
+ * sidebar tab or a "new tab" button, which would disable the feature for
+ * everyone.
+ *
+ * A negative answer still greys the switch out (P4 — degrade visibly), but the
+ * probe must not cry wolf.
  */
-
-export const HEADER_SELECTOR = '.workspace-tab-header';
-export const HEADER_INNER_SELECTOR = '.workspace-tab-header-inner';
-export const HEADER_TITLE_SELECTOR = '.workspace-tab-header-inner-title';
-export const HEADER_ICON_SELECTOR = '.workspace-tab-header-inner-icon';
 
 export type CompactProbe =
 	| { status: 'ok' }
-	/** No tab header rendered yet — the workspace is still empty, ask again later. */
+	/** No editor tab header rendered yet — the workspace is still empty. */
 	| { status: 'pending' }
 	| { status: 'unsupported'; reason: string };
+
+const HEADER_SELECTOR = '.workspace-tab-header';
+const NEW_TAB_CLASS = 'workspace-tab-header-new-tab';
+const INNER_SELECTOR = '.workspace-tab-header-inner';
+const TITLE_SELECTOR = '.workspace-tab-header-inner-title';
+const SIDEBAR_SELECTOR = '.mod-left-split, .mod-right-split';
 
 export function probeCompactPinnedRow(app: App): CompactProbe {
 	try {
 		const doc = app.workspace.containerEl?.ownerDocument ?? activeDocument;
-		const header = doc.querySelector<HTMLElement>(HEADER_SELECTOR);
-		if (!header) return { status: 'pending' };
+		const headers = Array.from(doc.querySelectorAll<HTMLElement>(HEADER_SELECTOR)).filter(
+			(header) => !header.classList.contains(NEW_TAB_CLASS) && !header.closest(SIDEBAR_SELECTOR),
+		);
 
-		const inner = header.querySelector(HEADER_INNER_SELECTOR);
-		if (!inner) return { status: 'unsupported', reason: 'missing .workspace-tab-header-inner' };
+		if (headers.length === 0) return { status: 'pending' };
 
-		const title = header.querySelector(HEADER_TITLE_SELECTOR);
-		if (!title)
+		const header = headers[0];
+		if (!header?.querySelector(INNER_SELECTOR)) {
+			return { status: 'unsupported', reason: 'missing .workspace-tab-header-inner' };
+		}
+		if (!header.querySelector(TITLE_SELECTOR)) {
 			return { status: 'unsupported', reason: 'missing .workspace-tab-header-inner-title' };
-
-		const icon = header.querySelector(HEADER_ICON_SELECTOR);
-		if (!icon) return { status: 'unsupported', reason: 'missing .workspace-tab-header-inner-icon' };
-
-		const style = doc.defaultView?.getComputedStyle(header);
-		if (style && style.display !== 'flex') {
-			return { status: 'unsupported', reason: 'tab header is not a flex item' };
 		}
 
 		return { status: 'ok' };

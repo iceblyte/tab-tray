@@ -179,6 +179,47 @@ body.theme-light {
 	min-height: 0;
 }
 
+/* ---------- mode switch (groups / open tabs) ---------- */
+.tab-tray-view .tt-seg {
+	display: flex;
+	gap: 2px;
+	margin: 0 10px 6px;
+	padding: 2px;
+	border-radius: 6px;
+	background: var(--background-modifier-hover);
+	flex: none;
+}
+
+.tab-tray-view .tt-seg-btn {
+	flex: 1;
+	height: 22px;
+	padding: 0;
+	border: none;
+	box-shadow: none;
+	background: none;
+	border-radius: 4px;
+	font-size: 12px;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+
+.tab-tray-view .tt-seg-btn:hover {
+	color: var(--text-normal);
+}
+
+.tab-tray-view .tt-seg-btn.active {
+	background: var(--background-primary);
+	color: var(--text-normal);
+	box-shadow: var(--shadow-s);
+}
+
+.tab-tray-view .tt-tabs {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
 /* ---------- group rows (F1) ---------- */
 .tab-tray-view .group {
 	position: relative;
@@ -520,14 +561,14 @@ body.theme-light {
 }
 
 /* ---------- tab manager (F9) ---------- */
-.tab-tray-manager-view .tm-tools {
+.tab-tray-view .tt-tabs .tm-tools {
 	display: flex;
 	gap: 6px;
 	padding: 0 10px 8px;
 	flex: none;
 }
 
-.tab-tray-manager-view .tm-search {
+.tab-tray-view .tt-tabs .tm-search {
 	flex: 1;
 	min-width: 0;
 	height: 26px;
@@ -541,11 +582,11 @@ body.theme-light {
 	box-shadow: none;
 }
 
-.tab-tray-manager-view .tm-search::placeholder {
+.tab-tray-view .tt-tabs .tm-search::placeholder {
 	color: var(--tt-text-faint);
 }
 
-.tab-tray-manager-view .tm-collapse {
+.tab-tray-view .tt-tabs .tm-collapse {
 	height: 26px;
 	padding: 0 9px;
 	border-radius: 6px;
@@ -561,17 +602,17 @@ body.theme-light {
 	cursor: pointer;
 }
 
-.tab-tray-manager-view .tm-collapse:hover {
+.tab-tray-view .tt-tabs .tm-collapse:hover {
 	background: var(--tt-hover);
 	color: var(--tt-text-normal);
 }
 
-.tab-tray-manager-view .tsec {
+.tab-tray-view .tt-tabs .tsec {
 	position: relative;
 	margin: 1px 0;
 }
 
-.tab-tray-manager-view .tsec-head {
+.tab-tray-view .tt-tabs .tsec-head {
 	display: flex;
 	align-items: center;
 	gap: 6px;
@@ -584,11 +625,11 @@ body.theme-light {
 	user-select: none;
 }
 
-.tab-tray-manager-view .tsec-head:hover {
+.tab-tray-view .tt-tabs .tsec-head:hover {
 	background: var(--tt-hover);
 }
 
-.tab-tray-manager-view .tsec-name {
+.tab-tray-view .tt-tabs .tsec-name {
 	flex: 1;
 	min-width: 0;
 	overflow: hidden;
@@ -597,12 +638,12 @@ body.theme-light {
 	font-weight: 500;
 }
 
-.tab-tray-manager-view .tsec.empty .tsec-name {
+.tab-tray-view .tt-tabs .tsec.empty .tsec-name {
 	color: var(--tt-text-faint);
 	font-weight: 400;
 }
 
-.tab-tray-manager-view .tpane {
+.tab-tray-view .tt-tabs .tpane {
 	font-size: 10px;
 	padding: 1px 6px;
 	border-radius: 4px;
@@ -612,7 +653,7 @@ body.theme-light {
 	font-variant-numeric: tabular-nums;
 }
 
-.tab-tray-manager-view .tflag {
+.tab-tray-view .tt-tabs .tflag {
 	font-size: 10px;
 	padding: 1px 6px;
 	border-radius: 4px;
@@ -621,16 +662,16 @@ body.theme-light {
 	flex: none;
 }
 
-.tab-tray-manager-view .member.tentry {
+.tab-tray-view .tt-tabs .member.tentry {
 	padding-inline-end: 6px;
 }
 
-.tab-tray-manager-view .member.tentry.active-row {
+.tab-tray-view .tt-tabs .member.tentry.active-row {
 	background: var(--tt-active);
 	color: var(--tt-text-normal);
 }
 
-.tab-tray-manager-view .tm-empty {
+.tab-tray-view .tt-tabs .tm-empty {
 	padding: 10px 12px;
 	font-size: 12px;
 	color: var(--tt-text-faint);
@@ -639,13 +680,16 @@ body.theme-light {
 /* ---------- compact pinned row (F4) ----------
    In-place restyle only: a class, `order` and a width. No DOM is moved. */
 .workspace-tab-header.tab-tray-pinned-compact {
+	--tab-max-width: 40px;
+	--tab-width: 40px;
 	order: -1;
 	flex: 0 0 auto;
-	width: 38px;
-	min-width: 38px;
-	max-width: 38px;
+	width: 40px;
+	min-width: 40px;
+	max-width: 40px;
 	padding: 0;
 	position: relative;
+	justify-content: center;
 }
 
 .workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner {
@@ -654,7 +698,8 @@ body.theme-light {
 }
 
 .workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-title,
-.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-close-button {
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-close-button,
+.workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-status-container {
 	display: none;
 }
 
