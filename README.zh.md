@@ -61,7 +61,7 @@ npm run lint       # Biome
 npm run typecheck  # tsc --noEmit
 ```
 
-架构、持久化设计与决策记录见 [docs/DESIGN.md](./docs/DESIGN.md)；需求基线见 [docs/PRD.md](./docs/PRD.md)；实现所遵循的 UI 原型在 [prototype/](./prototype/index.html)。
+架构、持久化设计与决策记录见 [docs/DESIGN.md](./docs/DESIGN.md)；需求基线见 [docs/PRD.md](./docs/PRD.md)；手工验收清单见 [docs/ACCEPTANCE.md](./docs/ACCEPTANCE.md)；实现所遵循的 UI 原型在 [prototype/](./prototype/index.html)。
 
 ## 赞助
 
