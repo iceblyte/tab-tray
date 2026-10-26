@@ -78,10 +78,20 @@ export default class TabTrayPlugin extends Plugin {
 
 		const gate: MemberGate = {
 			check: (path) => {
-				// R12 first: an out-of-vault path is never a candidate at all.
-				if (!this.#tracker.isVaultPath(path)) return 'external';
-				if (this.#tracker.isPinned(path)) return 'pinned';
-				return null;
+				const pinned = this.#tracker.isPinned(path);
+
+				// A path the vault index knows is a normal candidate.
+				if (this.#tracker.isVaultPath(path)) return pinned ? 'pinned' : null;
+
+				// A tracked path that the index no longer knows is a missing file,
+				// not an out-of-vault one — moving it between groups must still work.
+				const tracked = this.#store
+					?.snapshot()
+					.groups.some((group) => group.members.some((member) => member.path === path));
+				if (tracked) return pinned ? 'pinned' : null;
+
+				// R12: everything else has no durable vault-relative path.
+				return 'external';
 			},
 		};
 
