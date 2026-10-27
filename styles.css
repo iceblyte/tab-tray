@@ -541,25 +541,6 @@ body.theme-light {
 		0 0 0 4px var(--gc);
 }
 
-/* ---------- context-menu submenu (F3) ---------- */
-.menu-item.has-submenu {
-	position: relative;
-}
-
-.tab-tray-submenu {
-	display: none;
-	position: absolute;
-	inset-inline-start: calc(100% - 6px);
-	top: -6px;
-	min-width: 178px;
-	padding: 5px;
-	z-index: 100;
-}
-
-.tab-tray-submenu.is-open {
-	display: block;
-}
-
 /* ---------- tab manager (F9) ---------- */
 .tab-tray-view .tt-tabs .tm-tools {
 	display: flex;
@@ -704,7 +685,18 @@ body.theme-light {
 }
 
 .workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-icon {
+	display: flex;
 	margin: 0;
+	padding: 0;
+}
+
+/* Obsidian hides the tab icon for notes, in two rules — the stronger one is
+   `.workspace .mod-root .workspace-tab-header[data-type="markdown"] …`.
+   A compact tab has nothing else to show, so the icon must come back. This
+   selector matches that specificity and plugin CSS loads after core CSS. */
+.workspace .mod-root .workspace-tab-header.tab-tray-pinned-compact .workspace-tab-header-inner-icon {
+	display: flex;
+	padding-inline-end: 0;
 }
 
 /* Overflow is left to Obsidian's own tab bar: the icons keep a fixed width and

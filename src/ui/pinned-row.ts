@@ -29,6 +29,8 @@ export class PinnedRow {
 	readonly #app: App;
 	readonly #controller: TrayController;
 	#unsub: (() => void) | null = null;
+	/** Original `aria-label`, so turning compact mode off restores the host's. */
+	readonly #labels = new WeakMap<HTMLElement, string | null>();
 
 	constructor(app: App, controller: TrayController) {
 		this.#app = app;
@@ -58,9 +60,28 @@ export class PinnedRow {
 				if (header.closest(SIDEBAR_SELECTOR)) continue;
 
 				const pinned = header.querySelector(PINNED_SELECTOR) !== null;
-				header.classList.toggle(COMPACT_CLASS, compact && pinned);
+				const compactHere = compact && pinned;
+				header.classList.toggle(COMPACT_CLASS, compactHere);
 
 				const title = header.querySelector(TITLE_SELECTOR)?.textContent?.trim() ?? '';
+
+				// The title element is hidden in compact mode, so the tooltip has
+				// to move to the header itself. Only set while compact, and put
+				// the host's value back when it ends.
+				if (compactHere) {
+					if (!this.#labels.has(header)) {
+						this.#labels.set(header, header.getAttribute('aria-label'));
+					}
+					if (title) header.setAttribute('aria-label', title);
+					header.setAttribute('data-tooltip-position', 'bottom');
+				} else if (this.#labels.has(header)) {
+					const original = this.#labels.get(header) ?? null;
+					if (original === null) header.removeAttribute('aria-label');
+					else header.setAttribute('aria-label', original);
+					header.removeAttribute('data-tooltip-position');
+					this.#labels.delete(header);
+				}
+
 				const color = colors?.get(title) ?? null;
 
 				header.classList.toggle(GROUPED_CLASS, color !== null);
