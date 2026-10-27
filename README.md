@@ -27,9 +27,9 @@ save path, and the fallbacks are tested rather than assumed.
 - **Group colouring** — member tab headers are tinted with their group colour.
   Files outside a group are never tinted.
 - **One merged sidebar** — your groups and every open tab in one list. Group
-  sections keep all their persistent members; ungrouped and out-of-vault tabs
-  appear below. Search, focus, close, pin, add/remove and tidy-all all live
-  there.
+  sections keep all their persistent members; pinned, ungrouped and
+  out-of-vault tabs follow. Search, focus, close, pin, add/remove and tidy-all
+  all live there.
 - **Commands and hotkeys** — per-group open/collapse commands plus global ones,
   all usable with the sidebar closed.
 - **Bilingual** — English and Simplified Chinese, following Obsidian's language
@@ -52,8 +52,8 @@ Until the plugin is in the community store, install it manually:
 ## Usage
 
 Open the sidebar from the ribbon (archive icon) or with the command **Open group
-sidebar**. One list shows your groups first, then open tabs that are ungrouped or
-outside the vault. Create a group, then add files by right-clicking them in the
+sidebar**. One list shows your groups first, then pinned tabs, ungrouped tabs
+and tabs outside the vault. Create a group, then add files by right-clicking them in the
 file explorer or on a tab header. A tab that is already in a group offers
 **Remove from "…"** in the same menu.
 
@@ -61,10 +61,10 @@ Clicking a group name toggles it: it collapses if any member is open in the
 current window, and expands otherwise. Holding Ctrl/Cmd while expanding appends
 instead of replacing.
 
-A member whose tab is pinned natively shows a 📌 marker. It is skipped when the
-group collapses or replaces, and becomes a normal member again the moment you
-unpin it — there is no state to repair, because the pin state is read from the
-tab itself rather than stored.
+Pinned tabs cannot be group members. Pinning a member removes it from the group
+and shows a notice; the tab then lives in the sidebar's **Pinned** section.
+Unpinning does not re-add it — add it again once it is a normal tab. Nothing is
+stored for the pin state, so there is no state to repair.
 
 ## Your data
 
