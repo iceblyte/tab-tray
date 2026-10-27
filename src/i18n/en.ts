@@ -63,7 +63,7 @@ export const en = {
 
 	// Context menus (F3)
 	'menu.addToGroup': 'Add to group',
-	'menu.removeFromGroup': 'Remove from “{name}”',
+	'menu.removeFromGroup': 'Remove from “{name}” group',
 	'menu.newGroup': 'New group…',
 
 	// Commands (F6)

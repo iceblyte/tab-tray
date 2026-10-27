@@ -56,7 +56,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'tabs.closeOthers': '关闭其他标签',
 
 	'menu.addToGroup': '添加到分组',
-	'menu.removeFromGroup': '从「{name}」移出',
+	'menu.removeFromGroup': '从「{name}」分组中移出',
 	'menu.newGroup': '新建分组…',
 
 	'cmd.openGroup': '打开分组：{name}',

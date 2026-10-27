@@ -84,36 +84,44 @@ export function addToGroupMenuItem(menu: Menu, controller: TrayController, path:
 	const title = controller.i18n.t('menu.addToGroup');
 	if (hasItem(menu, title)) return;
 
+	// R12: an out-of-vault file has no durable path, so "add" would only ever
+	// produce a rejection notice. It is not offered at all.
+	const external = controller.isExternalPath(path);
+	const owner = controller.groupOfPath(path);
+	if (external && !owner) return;
+
 	// A menu that is only "add / remove" should not open with a leading
 	// separator; a host menu with items above gets one.
 	if (menuHasItems(menu)) menu.addSeparator();
-	menu.addItem((item) => {
-		item.setTitle(title);
 
-		// Native flyout when the host supports it. `setSubmenu` is internal but
-		// stable enough that its absence is the only thing we need to handle.
-		// The leading icon is added only on the fallback path: a submenu item
-		// already gets the host's chevron, and two icons look wrong.
-		let submenu: Menu | null = null;
-		try {
-			submenu = (item as SubmenuCapableItem).setSubmenu?.() ?? null;
-		} catch {
-			submenu = null;
-		}
-		if (submenu) {
-			fillGroupMenu(submenu, controller, path);
-			return;
-		}
+	if (!external) {
+		menu.addItem((item) => {
+			// The leading folder icon stays; the host adds its chevron on the right.
+			item.setTitle(title).setIcon('folder-plus');
 
-		item.setIcon('folder-plus').onClick((event) => {
-			// Defer past the current click so the parent menu's closing handler
-			// cannot swallow the list we are about to open.
-			window.setTimeout(() => openGroupMenu(event, controller, path), 0);
+			// Native flyout when the host supports it. `setSubmenu` is internal but
+			// stable enough that its absence is the only thing we need to handle.
+			let submenu: Menu | null = null;
+			try {
+				submenu = (item as SubmenuCapableItem).setSubmenu?.() ?? null;
+			} catch {
+				submenu = null;
+			}
+			if (submenu) {
+				fillGroupMenu(submenu, controller, path);
+				return;
+			}
+
+			item.onClick((event) => {
+				// Defer past the current click so the parent menu's closing handler
+				// cannot swallow the list we are about to open.
+				window.setTimeout(() => openGroupMenu(event, controller, path), 0);
+			});
 		});
-	});
+	}
 
-	// F3 — the reverse operation, on every surface that offers "add".
-	const owner = controller.groupOfPath(path);
+	// F3 — the reverse operation, on every surface that offers "add". Legacy
+	// data may still hold an external member, so this stays independent.
 	if (owner) {
 		menu.addItem((item) =>
 			item
