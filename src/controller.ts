@@ -97,10 +97,16 @@ export class TrayController {
 			this.#store.on('notice', (notice) => this.#onStoreNotice(notice)),
 			this.#store.on('reject', (reason) => this.#onReject(reason)),
 			this.#tracker.onChange(() => this.#refresh()),
+			this.#tracker.onPinChange((path, pinned) => {
+				if (pinned) this.#removePinnedMember(path);
+			}),
 			this.#fileFollow.onChange(() => this.#refresh()),
 			this.#i18n.onChange(() => this.#refresh()),
 		);
 		this.#refresh();
+		// A pinned member from an older build (or pinned while the plugin was
+		// off) must not stay in a group: the new rule is "pinning removes it".
+		this.#reconcilePinnedMembers();
 	}
 
 	onChange(listener: (state: RuntimeState) => void): () => void {
@@ -442,6 +448,48 @@ export class TrayController {
 			currentWindowId: this.#executor.currentWindowId(),
 			revision: this.#revision,
 		};
+	}
+
+	/** F2/R5 — pinning is a membership-ending action now, with a visible notice. */
+	#removePinnedMember(path: string): void {
+		const owner = findGroupOfPath(this.#state.data, path);
+		if (!owner) return;
+
+		const result = this.#store.applyMutation({ op: 'member.remove', groupId: owner.id, path });
+		if (!result.ok) return;
+
+		this.#notify(
+			this.#i18n.t('notice.pinnedRemoved', { file: baseName(path), group: owner.name }),
+			'info',
+			8000,
+		);
+	}
+
+	/** Startup pass for members that were already pinned when the plugin loaded. */
+	#reconcilePinnedMembers(): void {
+		const pinned = this.#state.pinned;
+		if (pinned.size === 0) return;
+
+		const removed: Array<{ file: string; group: string }> = [];
+		for (const group of [...this.#state.data.groups]) {
+			for (const member of [...group.members]) {
+				if (!pinned.has(member.path)) continue;
+				const result = this.#store.applyMutation({
+					op: 'member.remove',
+					groupId: group.id,
+					path: member.path,
+				});
+				if (result.ok) removed.push({ file: baseName(member.path), group: group.name });
+			}
+		}
+
+		if (removed.length === 0) return;
+		if (removed.length === 1) {
+			const item = removed[0];
+			if (item) this.#notify(this.#i18n.t('notice.pinnedRemoved', item), 'info', 8000);
+			return;
+		}
+		this.#notify(this.#i18n.t('notice.pinnedRemovedMany', { count: removed.length }), 'info', 8000);
 	}
 
 	#refresh(): void {

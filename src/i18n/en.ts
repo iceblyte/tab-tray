@@ -90,6 +90,8 @@ export const en = {
 	'notice.moved': 'Moved from “{from}” to “{to}”.',
 	'notice.softLimit': '“{name}” now has {count} members (soft limit {limit}). You can keep adding.',
 	'notice.groupDeleted': 'Deleted group “{name}”.',
+	'notice.pinnedRemoved': 'Pinned — removed “{file}” from “{group}”.',
+	'notice.pinnedRemovedMany': 'Pinned — removed {count} members from their groups.',
 	'notice.memberRemoved': 'Removed “{file}” from “{group}”.',
 	'notice.noActiveGroup': 'The active tab does not belong to any group.',
 	'notice.openFailed': 'Could not open “{name}”.',

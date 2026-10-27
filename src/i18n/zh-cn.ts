@@ -80,6 +80,8 @@ export const zhCN: Record<I18nKey, string> = {
 	'notice.moved': '已从「{from}」移动到「{to}」。',
 	'notice.softLimit': '「{name}」现有 {count} 个成员（软阈值 {limit}），仍可继续添加。',
 	'notice.groupDeleted': '已删除分组「{name}」。',
+	'notice.pinnedRemoved': '已固定——已将「{file}」从「{group}」移出。',
+	'notice.pinnedRemovedMany': '已固定——已将 {count} 个成员移出分组。',
 	'notice.memberRemoved': '已将「{file}」从「{group}」移出。',
 	'notice.noActiveGroup': '当前活动标签不属于任何分组。',
 	'notice.openFailed': '无法打开「{name}」。',

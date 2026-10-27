@@ -88,9 +88,15 @@ export class PinnedRow {
 				}
 
 				// A known path is authoritative: if that file is not in a group,
-				// do not fall back to a same-named file in one.
-				const path = pathByHeader?.get(header) ?? null;
-				const color = path ? (pathColors?.get(path) ?? null) : (colors?.get(title) ?? null);
+				// do not fall back to a same-named file in one. External files
+				// can never be members, so they are never tinted (R12).
+				const external = header.classList.contains('mod-external-file');
+				const path = external ? null : (pathByHeader?.get(header) ?? null);
+				const color = external
+					? null
+					: path
+						? (pathColors?.get(path) ?? null)
+						: (colors?.get(title) ?? null);
 
 				header.classList.toggle(GROUPED_CLASS, color !== null);
 				if (color) header.style.setProperty(GROUP_VAR, `var(--tt-g-${color})`);

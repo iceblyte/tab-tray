@@ -1,5 +1,6 @@
 import { type App, type EventRef, FileView, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { EventHost } from './host';
+import { isAbsolutePath } from './paths';
 import type { LeafSnapshot } from './plan';
 
 /**
@@ -27,6 +28,7 @@ export class PinTracker {
 	readonly #paneIds = new WeakMap<object, string>();
 	readonly #leafIds = new WeakMap<WorkspaceLeaf, string>();
 	readonly #leafEvents = new Map<WorkspaceLeaf, EventRef>();
+	readonly #pinListeners = new Set<(path: string, pinned: boolean) => void>();
 	#leafIndex = new Map<string, WorkspaceLeaf>();
 
 	#snapshot: WorkspaceSnapshot = { leaves: [], revision: 0 };
@@ -70,6 +72,15 @@ export class PinTracker {
 		return () => this.#listeners.delete(listener);
 	}
 
+	/**
+	 * Fires on the actual pin transition, before the debounced rescan. The
+	 * controller uses this to enforce "pinning removes group membership".
+	 */
+	onPinChange(listener: (path: string, pinned: boolean) => void): () => void {
+		this.#pinListeners.add(listener);
+		return () => this.#pinListeners.delete(listener);
+	}
+
 	leafById(leafId: string): WorkspaceLeaf | null {
 		return this.#leafIndex.get(leafId) ?? null;
 	}
@@ -86,8 +97,9 @@ export class PinTracker {
 		);
 	}
 
-	/** R12: does the vault index know this path? */
+	/** R12: is this a real vault path (not an external absolute path)? */
 	isVaultPath(path: string): boolean {
+		if (isAbsolutePath(path)) return false;
 		return this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
 	}
 
@@ -148,6 +160,7 @@ export class PinTracker {
 		}
 		this.#leafEvents.clear();
 		this.#listeners.clear();
+		this.#pinListeners.clear();
 	}
 
 	// --------------------------------------------------------------- internals
@@ -155,7 +168,14 @@ export class PinTracker {
 	#attachPinEvent(leaf: WorkspaceLeaf): void {
 		if (this.#leafEvents.has(leaf)) return;
 		try {
-			const ref = leaf.on('pinned-change', () => this.schedule(0));
+			const ref = leaf.on('pinned-change', (pinned: boolean) => {
+				const view = leaf.view;
+				const path = view instanceof FileView ? (view.file?.path ?? null) : null;
+				if (path) {
+					for (const listener of this.#pinListeners) listener(path, pinned);
+				}
+				this.schedule(0);
+			});
 			this.#leafEvents.set(leaf, ref);
 		} catch {
 			// Older builds without the event simply rely on layout-change.
@@ -168,8 +188,12 @@ export class PinTracker {
 
 		const file = view instanceof FileView ? view.file : null;
 		const path = file?.path ?? null;
+
+		// 1.14 can open files outside the vault. `getAbstractFileByPath` returns
+		// those too, so the vault test alone would classify them as members.
+		const external = isExternalHeader(leaf) || (path !== null && isAbsolutePath(path));
 		const isVaultFile =
-			path !== null && this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
+			path !== null && !external && this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
 
 		const win = view.containerEl?.ownerDocument?.defaultView ?? null;
 		const windowId = win ? this.#idForWindow(win) : 'unknown';
@@ -228,4 +252,10 @@ function isInSidebar(el: HTMLElement | undefined): boolean {
 	const split = el?.closest('.workspace-split');
 	if (!split) return false;
 	return split.classList.contains('mod-left-split') || split.classList.contains('mod-right-split');
+}
+
+/** Obsidian marks external-file tab headers with this class. */
+function isExternalHeader(leaf: WorkspaceLeaf): boolean {
+	const header = (leaf as WorkspaceLeaf & { tabHeaderEl?: HTMLElement }).tabHeaderEl;
+	return header?.classList.contains('mod-external-file') === true;
 }
