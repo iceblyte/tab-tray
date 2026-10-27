@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Menu, prepareFuzzySearch } from 'obsidian';
 	import type { TrayController } from '../../controller';
-	import { COLOR_KEYS, type ColorKey, type Group } from '../../core/types';
+	import { COLOR_KEYS, type ColorKey, type Group, type SectionKind } from '../../core/types';
 	import type { I18nKey } from '../../i18n';
 	import { addToGroupMenuItem } from '../../integrations/menus';
 	import type { TabListEntry } from '../../workspace/plan';
@@ -30,9 +30,27 @@
 
 	let dragGroupId = $state<string | null>(null);
 	let dragMember = $state<{ groupId: string; path: string } | null>(null);
+	let dragSectionId = $state<string | null>(null);
 	let groupDrop = $state<{ groupId: string; before: boolean } | null>(null);
 	let memberDrop = $state<{ groupId: string; beforePath: string | null } | null>(null);
+	let sectionDrop = $state<{ id: string; before: boolean } | null>(null);
 	let externalHoverId = $state<string | null>(null);
+
+	/** Sentinel source for an open tab that is not in any group yet. */
+	const UNGROUPED = '__ungrouped';
+
+	interface SystemSection {
+		/** Section kind doubles as the fold key; group ids are UUIDs. */
+		id: SectionKind;
+		kind: SectionKind;
+		entries: TabListEntry[];
+	}
+
+	/**
+	 * Order lives in settings so a drag survives a restart. The three sections
+	 * are derived views, not data, so nothing else about them is stored.
+	 */
+	const sectionOrder = $derived(state.data.settings.sectionOrder);
 
 	const matcher = $derived(query.trim() ? prepareFuzzySearch(query.trim()) : null);
 
@@ -87,6 +105,22 @@
 			ungrouped.length === 0 &&
 			external.length === 0,
 	);
+
+	const systemSections = $derived.by((): SystemSection[] =>
+		sectionOrder
+			.map((kind): SystemSection => {
+				const entries =
+					kind === 'pinned' ? pinned : kind === 'ungrouped' ? ungrouped : external;
+				return { id: kind, kind, entries };
+			})
+			.filter((section) => section.entries.length > 0),
+	);
+
+	function sectionName(kind: SectionKind): string {
+		if (kind === 'pinned') return t('tabs.section.pinned');
+		if (kind === 'ungrouped') return t('tabs.section.ungrouped');
+		return t('tabs.section.external');
+	}
 
 	$effect(() => {
 		if (!renamingId || !renameInput) return;
@@ -343,6 +377,7 @@
 		event.stopPropagation();
 		dragGroupId = groupId;
 		dragMember = null;
+		dragSectionId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-group', groupId);
@@ -363,6 +398,7 @@
 		event.stopPropagation();
 		dragMember = { groupId, path };
 		dragGroupId = null;
+		dragSectionId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-member', JSON.stringify({ groupId, path }));
@@ -370,19 +406,91 @@
 		}
 	}
 
+	function startOpenTabDrag(event: DragEvent, path: string): void {
+		if (query.trim()) {
+			event.preventDefault();
+			return;
+		}
+		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+			event.preventDefault();
+			return;
+		}
+		event.stopPropagation();
+		dragMember = { groupId: UNGROUPED, path };
+		dragGroupId = null;
+		dragSectionId = null;
+		if (event.dataTransfer) {
+			event.dataTransfer.effectAllowed = 'move';
+			event.dataTransfer.setData(
+				'application/x-tab-tray-member',
+				JSON.stringify({ groupId: UNGROUPED, path }),
+			);
+			event.dataTransfer.setData('text/plain', path);
+		}
+	}
+
+	function startSectionDrag(event: DragEvent, id: SectionKind): void {
+		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+			event.preventDefault();
+			return;
+		}
+		event.stopPropagation();
+		dragSectionId = id;
+		dragGroupId = null;
+		dragMember = null;
+		if (event.dataTransfer) {
+			event.dataTransfer.effectAllowed = 'move';
+			event.dataTransfer.setData('application/x-tab-tray-section', id);
+			event.dataTransfer.setData('text/plain', id);
+		}
+	}
+
+	function onSectionDragOver(event: DragEvent, id: SectionKind): void {
+		if (!dragSectionId || dragSectionId === id) return;
+		event.preventDefault();
+		event.stopPropagation();
+		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+		sectionDrop = { id, before: event.clientY < rect.top + rect.height / 2 };
+		if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+	}
+
+	function onSectionDrop(event: DragEvent, id: SectionKind): void {
+		if (!dragSectionId) return;
+		event.preventDefault();
+		event.stopPropagation();
+
+		const moved = dragSectionId as SectionKind;
+		const order = sectionOrder.filter((token) => token !== moved);
+		const index = order.indexOf(id);
+		const before = sectionDrop?.before ?? true;
+		order.splice(before ? index : index + 1, 0, moved);
+		controller.reorderSections(order);
+		endDrag();
+	}
+
+	function dropMember(targetGroupId: string, beforePath: string | null): void {
+		if (!dragMember) return;
+		if (dragMember.groupId === UNGROUPED) {
+			if (controller.addMember(targetGroupId, dragMember.path) && beforePath) {
+				controller.moveMemberTo(targetGroupId, targetGroupId, dragMember.path, beforePath);
+			}
+			return;
+		}
+		controller.moveMemberTo(dragMember.groupId, targetGroupId, dragMember.path, beforePath);
+	}
+
 	function endDrag(): void {
 		dragGroupId = null;
 		dragMember = null;
+		dragSectionId = null;
 		groupDrop = null;
 		memberDrop = null;
+		sectionDrop = null;
 		externalHoverId = null;
 	}
 
-	function isExternalDrag(): boolean {
-		return dragGroupId === null && dragMember === null;
-	}
-
 	function onHeadDragOver(event: DragEvent, groupId: string): void {
+		if (dragSectionId) return;
 		if (dragGroupId) {
 			if (dragGroupId === groupId) return;
 			event.preventDefault();
@@ -408,7 +516,7 @@
 	}
 
 	function onMemberDragOver(event: DragEvent, groupId: string, path: string): void {
-		if (!dragMember) return;
+		if (dragSectionId || !dragMember) return;
 		event.preventDefault();
 		event.stopPropagation();
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -421,6 +529,7 @@
 	}
 
 	function onHeadDrop(event: DragEvent, groupId: string): void {
+		if (dragSectionId) return;
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -431,7 +540,7 @@
 			order.splice(before ? index : index + 1, 0, dragGroupId);
 			controller.reorderGroups(order);
 		} else if (dragMember) {
-			controller.moveMemberTo(dragMember.groupId, groupId, dragMember.path, null);
+			dropMember(groupId, null);
 		} else {
 			controller.addDroppedFiles(groupId, event);
 		}
@@ -439,18 +548,12 @@
 	}
 
 	function onMemberDrop(event: DragEvent, groupId: string): void {
-		// Group drags are handled by the group container so dropping a group on
-		// a member row still reorders the group instead of being swallowed.
-		if (dragGroupId) return;
+		// Group and section drags are handled by their containers.
+		if (dragSectionId || dragGroupId) return;
 		event.preventDefault();
 		event.stopPropagation();
 		if (dragMember) {
-			controller.moveMemberTo(
-				dragMember.groupId,
-				groupId,
-				dragMember.path,
-				memberDrop?.beforePath ?? null,
-			);
+			dropMember(groupId, memberDrop?.beforePath ?? null);
 		} else {
 			controller.addDroppedFiles(groupId, event);
 		}
@@ -458,6 +561,7 @@
 	}
 
 	function onGroupDragOver(event: DragEvent, groupId: string): void {
+		if (dragSectionId) return;
 		event.preventDefault();
 
 		if (dragGroupId) {
@@ -478,6 +582,7 @@
 	}
 
 	function onGroupDrop(event: DragEvent, groupId: string): void {
+		if (dragSectionId) return;
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -488,7 +593,7 @@
 			order.splice(before ? index : index + 1, 0, dragGroupId);
 			controller.reorderGroups(order);
 		} else if (dragMember) {
-			controller.moveMemberTo(dragMember.groupId, groupId, dragMember.path, null);
+			dropMember(groupId, null);
 		} else {
 			controller.addDroppedFiles(groupId, event);
 		}
@@ -514,12 +619,22 @@
 <svelte:document onclick={onDocumentClick} onkeydown={onDocumentKeydown} />
 
 {#snippet tabRow(entry: TabListEntry)}
+	{@const canDrag = entry.isVaultFile && !entry.pinned}
 	<div
 		class="member tentry"
 		class:active-row={entry.active}
+		draggable={canDrag && !query.trim()}
 		role="button"
 		tabindex="0"
 		title={entry.path}
+		ondragstart={(event) => {
+			if (!canDrag) {
+				event.preventDefault();
+				return;
+			}
+			startOpenTabDrag(event, entry.path);
+		}}
+		ondragend={endDrag}
 		onclick={() => onEntryClick(entry)}
 		onkeydown={(event) => onEntryKeydown(event, entry)}
 		oncontextmenu={(event) => onTabContextMenu(event, entry)}
@@ -769,101 +884,61 @@
 				</div>
 			{/each}
 
-			{#if pinned.length > 0}
-				<div class="tsec pinned">
+			{#each systemSections as section (section.id)}
+				<div
+					class="tsec"
+					class:empty={section.kind === 'external'}
+					class:dragging={dragSectionId === section.id}
+					class:drop-target={sectionDrop?.id === section.id}
+					role="group"
+					aria-label={sectionName(section.kind)}
+					ondragover={(event) => onSectionDragOver(event, section.id)}
+					ondrop={(event) => onSectionDrop(event, section.id)}
+				>
+					{#if sectionDrop?.id === section.id && sectionDrop.before}
+						<div class="drop-line"></div>
+					{/if}
+
 					<div
 						class="tsec-head"
 						role="button"
 						tabindex="0"
-						onclick={() => foldSection('__pinned')}
+						draggable="true"
+						ondragstart={(event) => startSectionDrag(event, section.id)}
+						ondragend={endDrag}
+						onclick={() => foldSection(section.id)}
 						onkeydown={(event) => {
 							if (event.key === 'Enter' || event.key === ' ') {
 								event.preventDefault();
-								foldSection('__pinned');
+								foldSection(section.id);
 							}
 						}}
 					>
-						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__pinned')}>
+						<button type="button" class="twist" onclick={(event) => toggleFold(event, section.id)}>
 							<Icon name="chevron-down" size={14} />
 						</button>
-						<Icon name="pin" size={13} cls="tsec-icon" />
-						<span class="tsec-name">{t('tabs.section.pinned')}</span>
-						<span class="gcount has">{pinned.length}</span>
+						{#if section.kind === 'pinned'}
+							<Icon name="pin" size={13} cls="tsec-icon" />
+						{:else}
+							<span class="gdot tt-dot-muted"></span>
+						{/if}
+						<span class="tsec-name">{sectionName(section.kind)}</span>
+						<span class="gcount has">{section.entries.length}</span>
 					</div>
 
-					{#if !isFolded('__pinned')}
+					{#if !isFolded(section.id)}
 						<div class="members">
-							{#each pinned as entry (entry.path)}
+							{#each section.entries as entry (entry.path)}
 								{@render tabRow(entry)}
 							{/each}
 						</div>
 					{/if}
-				</div>
-			{/if}
 
-			{#if ungrouped.length > 0}
-				<div class="tsec">
-					<div
-						class="tsec-head"
-						role="button"
-						tabindex="0"
-						onclick={() => foldSection('__ungrouped')}
-						onkeydown={(event) => {
-							if (event.key === 'Enter' || event.key === ' ') {
-								event.preventDefault();
-								foldSection('__ungrouped');
-							}
-						}}
-					>
-						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__ungrouped')}>
-							<Icon name="chevron-down" size={14} />
-						</button>
-						<span class="gdot tt-dot-muted"></span>
-						<span class="tsec-name">{t('tabs.section.ungrouped')}</span>
-						<span class="gcount has">{ungrouped.length}</span>
-					</div>
-
-					{#if !isFolded('__ungrouped')}
-						<div class="members">
-							{#each ungrouped as entry (entry.path)}
-								{@render tabRow(entry)}
-							{/each}
-						</div>
+					{#if sectionDrop?.id === section.id && !sectionDrop.before}
+						<div class="drop-line"></div>
 					{/if}
 				</div>
-			{/if}
-
-			{#if external.length > 0}
-				<div class="tsec empty">
-					<div
-						class="tsec-head"
-						role="button"
-						tabindex="0"
-						onclick={() => foldSection('__external')}
-						onkeydown={(event) => {
-							if (event.key === 'Enter' || event.key === ' ') {
-								event.preventDefault();
-								foldSection('__external');
-							}
-						}}
-					>
-						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__external')}>
-							<Icon name="chevron-down" size={14} />
-						</button>
-						<span class="gdot tt-dot-muted"></span>
-						<span class="tsec-name">{t('tabs.section.external')}</span>
-						<span class="gcount has">{external.length}</span>
-					</div>
-
-					{#if !isFolded('__external')}
-						<div class="members">
-							{#each external as entry (entry.path)}
-								{@render tabRow(entry)}
-							{/each}
-						</div>
-					{/if}
-				</div>
-			{/if}
+			{/each}
 		</div>
 	</div>
 </div>

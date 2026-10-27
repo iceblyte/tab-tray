@@ -62,6 +62,31 @@ describe('parseSettings', () => {
 		expect(settings.groupColors).toBe(false);
 		expect(settings.softLimit).toBe(1);
 	});
+
+	it('defaults the section order when it is missing or unusable', () => {
+		expect(parseSettings({}).sectionOrder).toEqual(['pinned', 'ungrouped', 'external']);
+		expect(parseSettings({ sectionOrder: 'pinned' }).sectionOrder).toEqual([
+			'pinned',
+			'ungrouped',
+			'external',
+		]);
+	});
+
+	it('keeps a valid section order and appends whatever is missing', () => {
+		expect(parseSettings({ sectionOrder: ['external', 'pinned'] }).sectionOrder).toEqual([
+			'external',
+			'pinned',
+			'ungrouped',
+		]);
+	});
+
+	it('drops unknown and duplicate sections instead of hiding a section', () => {
+		expect(parseSettings({ sectionOrder: ['pinned', 'pinned', 'bogus', 7] }).sectionOrder).toEqual([
+			'pinned',
+			'ungrouped',
+			'external',
+		]);
+	});
 });
 
 describe('parseTrayData', () => {
