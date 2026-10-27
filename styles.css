@@ -734,6 +734,13 @@ body.theme-light {
 	background: var(--tt-group-color);
 }
 
+/* The inline group dot belongs to a full-width tab. In compact mode the
+   corner dot already carries the colour, and keeping both would push the
+   icon off centre in a 40px header. */
+.workspace-tab-header.tab-tray-pinned-compact.tab-tray-grouped .workspace-tab-header-inner::before {
+	display: none;
+}
+
 /* ---------- notices ---------- */
 .notice.tab-tray-notice {
 	border-inline-start: 3px solid var(--interactive-accent);
