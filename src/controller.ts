@@ -182,6 +182,24 @@ export class TrayController {
 		this.#store.applyMutation({ op: 'member.remove', groupId, path });
 	}
 
+	/** F3 — remove a file from whichever group owns it, with a confirmation notice. */
+	removeMemberFromGroup(path: string): boolean {
+		const owner = findGroupOfPath(this.#state.data, path);
+		if (!owner) return false;
+
+		const result = this.#store.applyMutation({ op: 'member.remove', groupId: owner.id, path });
+		if (result.ok) {
+			this.#notify(
+				this.#i18n.t('notice.memberRemoved', {
+					file: baseName(path),
+					group: owner.name,
+				}),
+				'info',
+			);
+		}
+		return result.ok;
+	}
+
 	moveMember(from: string, to: string, path: string): void {
 		this.#store.applyMutation({ op: 'member.move', from, to, path });
 	}

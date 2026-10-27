@@ -84,7 +84,9 @@ export function addToGroupMenuItem(menu: Menu, controller: TrayController, path:
 	const title = controller.i18n.t('menu.addToGroup');
 	if (hasItem(menu, title)) return;
 
-	menu.addSeparator();
+	// A menu that is only "add / remove" should not open with a leading
+	// separator; a host menu with items above gets one.
+	if (menuHasItems(menu)) menu.addSeparator();
 	menu.addItem((item) => {
 		item.setTitle(title);
 
@@ -109,6 +111,17 @@ export function addToGroupMenuItem(menu: Menu, controller: TrayController, path:
 			window.setTimeout(() => openGroupMenu(event, controller, path), 0);
 		});
 	});
+
+	// F3 — the reverse operation, on every surface that offers "add".
+	const owner = controller.groupOfPath(path);
+	if (owner) {
+		menu.addItem((item) =>
+			item
+				.setTitle(controller.i18n.t('menu.removeFromGroup', { name: owner.name }))
+				.setIcon('folder-minus')
+				.onClick(() => controller.removeMemberFromGroup(path)),
+		);
+	}
 }
 
 /**

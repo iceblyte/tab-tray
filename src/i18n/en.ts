@@ -60,6 +60,7 @@ export const en = {
 
 	// Context menus (F3)
 	'menu.addToGroup': 'Add to group',
+	'menu.removeFromGroup': 'Remove from “{name}”',
 	'menu.newGroup': 'New group…',
 
 	// Commands (F6)
@@ -86,6 +87,7 @@ export const en = {
 	'notice.moved': 'Moved from “{from}” to “{to}”.',
 	'notice.softLimit': '“{name}” now has {count} members (soft limit {limit}). You can keep adding.',
 	'notice.groupDeleted': 'Deleted group “{name}”.',
+	'notice.memberRemoved': 'Removed “{file}” from “{group}”.',
 	'notice.noActiveGroup': 'The active tab does not belong to any group.',
 	'notice.openFailed': 'Could not open “{name}”.',
 	'notice.missingSkipped': '{count} missing members were skipped.',

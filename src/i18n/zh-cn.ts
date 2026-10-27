@@ -53,6 +53,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'tabs.closeOthers': '关闭其他标签',
 
 	'menu.addToGroup': '添加到分组',
+	'menu.removeFromGroup': '从「{name}」移出',
 	'menu.newGroup': '新建分组…',
 
 	'cmd.openGroup': '打开分组：{name}',
@@ -76,6 +77,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'notice.moved': '已从「{from}」移动到「{to}」。',
 	'notice.softLimit': '「{name}」现有 {count} 个成员（软阈值 {limit}），仍可继续添加。',
 	'notice.groupDeleted': '已删除分组「{name}」。',
+	'notice.memberRemoved': '已将「{file}」从「{group}」移出。',
 	'notice.noActiveGroup': '当前活动标签不属于任何分组。',
 	'notice.openFailed': '无法打开「{name}」。',
 	'notice.missingSkipped': '已跳过 {count} 个丢失的成员。',
