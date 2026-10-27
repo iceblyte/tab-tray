@@ -44,14 +44,20 @@
 	/** Groups keep their persistent members; a search only narrows what is shown. */
 	const visibleGroups = $derived.by(() => {
 		const search = matcher;
-		return state.data.groups
-			.map((group) => ({
-				group,
-				members: search
-					? group.members.filter((member) => search(baseName(member.path)) !== null)
-					: group.members,
-			}))
-			.filter((entry) => entry.members.length > 0 || !search);
+		if (!search) return state.data.groups.map((group) => ({ group, members: group.members }));
+
+		const result: Array<{ group: Group; members: Group['members'] }> = [];
+		for (const group of state.data.groups) {
+			// A matching group name shows the whole group; otherwise filter its
+			// members by file name.
+			if (search(group.name) !== null) {
+				result.push({ group, members: group.members });
+				continue;
+			}
+			const members = group.members.filter((member) => search(baseName(member.path)) !== null);
+			if (members.length > 0) result.push({ group, members });
+		}
+		return result;
 	});
 
 	/** Open tabs with no group: the old tab list's contribution to the merge. */
