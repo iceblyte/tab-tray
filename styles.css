@@ -24,32 +24,33 @@ body {
 	--tt-shadow-win: var(--shadow-l);
 }
 
-/* R8 — the plugin's only proprietary colour asset: a fixed 10-colour
-   palette with a tuned variant per theme. Never used as a large fill. */
+/* R8 — a fixed 10-colour palette in the macOS system-colour family. The
+   light set is the vivid system palette; the dark set is the slightly brighter
+   variant Apple uses on dark backgrounds. */
 body.theme-dark {
-	--tt-g-red: #e35d6b;
-	--tt-g-orange: #e88a3a;
-	--tt-g-yellow: #d9b13b;
-	--tt-g-green: #57bd6f;
-	--tt-g-teal: #2fb8b0;
-	--tt-g-blue: #5b97ea;
-	--tt-g-indigo: #8389ec;
-	--tt-g-purple: #a277f2;
-	--tt-g-pink: #e46fb0;
-	--tt-g-gray: #9b9b9b;
+	--tt-g-red: #ff453a;
+	--tt-g-orange: #ff9f0a;
+	--tt-g-yellow: #ffd60a;
+	--tt-g-green: #30d158;
+	--tt-g-teal: #40c8e0;
+	--tt-g-blue: #0a84ff;
+	--tt-g-indigo: #5e5ce6;
+	--tt-g-purple: #bf5af2;
+	--tt-g-pink: #ff375f;
+	--tt-g-gray: #98989d;
 }
 
 body.theme-light {
-	--tt-g-red: #c94452;
-	--tt-g-orange: #bf6516;
-	--tt-g-yellow: #9a7b00;
-	--tt-g-green: #3d9a50;
-	--tt-g-teal: #158a84;
-	--tt-g-blue: #2f6fbb;
-	--tt-g-indigo: #545bc7;
-	--tt-g-purple: #7e4ec9;
-	--tt-g-pink: #c2498f;
-	--tt-g-gray: #7e7e7e;
+	--tt-g-red: #ff3b30;
+	--tt-g-orange: #ff9500;
+	--tt-g-yellow: #ffcc00;
+	--tt-g-green: #34c759;
+	--tt-g-teal: #30b0c7;
+	--tt-g-blue: #007aff;
+	--tt-g-indigo: #5856d6;
+	--tt-g-purple: #af52de;
+	--tt-g-pink: #ff2d55;
+	--tt-g-gray: #8e8e93;
 }
 
 .gc-red {
@@ -191,6 +192,18 @@ body.theme-light {
 .tab-tray-view .group {
 	position: relative;
 	margin: 1px 0;
+}
+
+.tab-tray-view .ghead[draggable='true'] {
+	cursor: grab;
+}
+
+.tab-tray-view .group.dragging .ghead {
+	cursor: grabbing;
+}
+
+.tab-tray-view .member[draggable='true'] {
+	cursor: grab;
 }
 
 .tab-tray-view .ghead {
@@ -577,6 +590,11 @@ body.theme-light {
 	background: var(--tt-hover);
 }
 
+.tab-tray-view .tt-tabs .tsec-icon {
+	color: var(--tt-text-faint);
+	flex: none;
+}
+
 .tab-tray-view .tt-tabs .tsec-name {
 	flex: 1;
 	min-width: 0;
@@ -608,6 +626,7 @@ body.theme-light {
 	background: var(--tt-active);
 	color: var(--tt-text-muted);
 	flex: none;
+	white-space: nowrap;
 }
 
 .tab-tray-view .tt-tabs .member.tentry {
@@ -671,9 +690,29 @@ body.theme-light {
 
 /* ---------- group colouring (v1, user-confirmed) ----------
    The dot is a pseudo-element, so colouring inserts no nodes either. */
-.workspace-tab-header.tab-tray-grouped {
+/* A macOS-style soft tint plus a coloured capsule ring. The inactive tab keeps
+   enough tint to read at a glance; the active tab gets a stronger tint and a
+   group-coloured outline so selection cannot wash the colour out. */
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped {
 	border-radius: 7px;
-	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 50%, transparent);
+	background-color: color-mix(
+		in srgb,
+		var(--tt-group-color) 10%,
+		var(--tab-background, var(--background-secondary))
+	);
+	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 55%, var(--text-normal));
+}
+
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped:not(.is-active):hover {
+	background-color: color-mix(
+		in srgb,
+		var(--tt-group-color) 16%,
+		var(--tab-background, var(--background-secondary))
+	);
 }
 
 .workspace-tab-header.tab-tray-grouped .workspace-tab-header-inner::before {
@@ -684,10 +723,41 @@ body.theme-light {
 	background: var(--tt-group-color);
 	flex: none;
 	margin-inline-end: 6px;
+	box-shadow: 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 35%, transparent);
 }
 
-.workspace-tab-header.tab-tray-grouped.is-active {
-	background: color-mix(in srgb, var(--tt-group-color) 14%, var(--background-primary));
+/* Higher specificity than Obsidian's `.workspace-tab-header-container
+   .workspace-tab-header.is-active`, so the tint survives selection. */
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped.is-active {
+	background-color: color-mix(
+		in srgb,
+		var(--tt-group-color) 24%,
+		var(--tab-background-active, var(--background-primary))
+	);
+	box-shadow: 0 0 0 var(--tab-outline-width, 1px)
+		color-mix(in srgb, var(--tt-group-color) 80%, var(--text-normal));
+}
+
+/* Obsidian draws the tab's curved corners with these pseudo-elements using the
+   active background colour. Without this override the centre is tinted but the
+   corners stay white, which reads as a broken active state. */
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped.is-active::before,
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped.is-active::after {
+	box-shadow:
+		inset 0 0 0 var(--tab-outline-width, 1px)
+			color-mix(in srgb, var(--tt-group-color) 80%, var(--text-normal)),
+		0 0 0 calc(var(--tab-curve, 0px) * 4)
+			color-mix(
+				in srgb,
+				var(--tt-group-color) 24%,
+				var(--tab-background-active, var(--background-primary))
+			);
 }
 
 .workspace-tab-header.tab-tray-pinned-compact.tab-tray-grouped::after {

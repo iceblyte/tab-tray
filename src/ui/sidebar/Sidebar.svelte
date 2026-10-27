@@ -61,19 +61,31 @@
 	});
 
 	/** Open tabs with no group: the old tab list's contribution to the merge. */
+	/** Pinned tabs get their own section: they can never be group members. */
+	const pinned = $derived(state.tabs.filter((entry) => entry.pinned && matches(entry.path)));
+
 	const ungrouped = $derived(
 		state.tabs.filter(
-			(entry) => entry.isVaultFile && entry.groupId === null && matches(entry.path),
+			(entry) =>
+				!entry.pinned &&
+				entry.isVaultFile &&
+				entry.groupId === null &&
+				matches(entry.path),
 		),
 	);
 
 	const external = $derived(
-		state.tabs.filter((entry) => !entry.isVaultFile && matches(entry.path)),
+		state.tabs.filter(
+			(entry) => !entry.pinned && !entry.isVaultFile && matches(entry.path),
+		),
 	);
 
 	const tabMap = $derived(new Map(state.tabs.map((entry) => [entry.path, entry])));
 	const isEmpty = $derived(
-		visibleGroups.length === 0 && ungrouped.length === 0 && external.length === 0,
+		visibleGroups.length === 0 &&
+			pinned.length === 0 &&
+			ungrouped.length === 0 &&
+			external.length === 0,
 	);
 
 	$effect(() => {
@@ -322,12 +334,19 @@
 	// ------------------------------------------------------------------- drag
 
 	function startGroupDrag(event: DragEvent, groupId: string): void {
+		// A drag that starts on a button must stay a click. Without this the
+		// group head's draggable attribute swallows the expand/collapse buttons.
+		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+			event.preventDefault();
+			return;
+		}
 		event.stopPropagation();
 		dragGroupId = groupId;
 		dragMember = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-group', groupId);
+			event.dataTransfer.setData('text/plain', groupId);
 		}
 	}
 
@@ -337,12 +356,17 @@
 			event.preventDefault();
 			return;
 		}
+		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+			event.preventDefault();
+			return;
+		}
 		event.stopPropagation();
 		dragMember = { groupId, path };
 		dragGroupId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-member', JSON.stringify({ groupId, path }));
+			event.dataTransfer.setData('text/plain', path);
 		}
 	}
 
@@ -362,9 +386,11 @@
 		if (dragGroupId) {
 			if (dragGroupId === groupId) return;
 			event.preventDefault();
+			event.stopPropagation();
 			const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
 			groupDrop = { groupId, before: event.clientY < rect.top + rect.height / 2 };
 			memberDrop = null;
+			if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 			return;
 		}
 		if (dragMember) {
@@ -372,6 +398,7 @@
 			event.stopPropagation();
 			groupDrop = null;
 			memberDrop = { groupId, beforePath: null };
+			if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 			return;
 		}
 		event.preventDefault();
@@ -390,6 +417,7 @@
 		const paths = group?.members.map((m) => m.path) ?? [];
 		const index = paths.indexOf(path);
 		memberDrop = { groupId, beforePath: before ? path : (paths[index + 1] ?? null) };
+		if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 	}
 
 	function onHeadDrop(event: DragEvent, groupId: string): void {
@@ -411,6 +439,9 @@
 	}
 
 	function onMemberDrop(event: DragEvent, groupId: string): void {
+		// Group drags are handled by the group container so dropping a group on
+		// a member row still reorders the group instead of being swallowed.
+		if (dragGroupId) return;
 		event.preventDefault();
 		event.stopPropagation();
 		if (dragMember) {
@@ -427,11 +458,19 @@
 	}
 
 	function onGroupDragOver(event: DragEvent, groupId: string): void {
-		// Group reordering is handled by the heads only.
-		if (dragGroupId) return;
 		event.preventDefault();
+
+		if (dragGroupId) {
+			if (dragGroupId === groupId) return;
+			const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+			groupDrop = { groupId, before: event.clientY < rect.top + rect.height / 2 };
+			memberDrop = null;
+			if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+			return;
+		}
 		if (dragMember) {
 			memberDrop = { groupId, beforePath: null };
+			if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
 			return;
 		}
 		externalHoverId = groupId;
@@ -439,9 +478,16 @@
 	}
 
 	function onGroupDrop(event: DragEvent, groupId: string): void {
-		if (dragGroupId) return;
 		event.preventDefault();
-		if (dragMember) {
+		event.stopPropagation();
+
+		if (dragGroupId) {
+			const order = state.data.groups.map((g) => g.id).filter((id) => id !== dragGroupId);
+			const index = order.indexOf(groupId);
+			const before = groupDrop?.before ?? true;
+			order.splice(before ? index : index + 1, 0, dragGroupId);
+			controller.reorderGroups(order);
+		} else if (dragMember) {
 			controller.moveMemberTo(dragMember.groupId, groupId, dragMember.path, null);
 		} else {
 			controller.addDroppedFiles(groupId, event);
@@ -466,6 +512,41 @@
 </script>
 
 <svelte:document onclick={onDocumentClick} onkeydown={onDocumentKeydown} />
+
+{#snippet tabRow(entry: TabListEntry)}
+	<div
+		class="member tentry"
+		class:active-row={entry.active}
+		role="button"
+		tabindex="0"
+		title={entry.path}
+		onclick={() => onEntryClick(entry)}
+		onkeydown={(event) => onEntryKeydown(event, entry)}
+		oncontextmenu={(event) => onTabContextMenu(event, entry)}
+	>
+		<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
+		<span class="mname">{baseName(entry.path)}</span>
+		{#if entry.paneCount > 1}
+			<span class="tpane" title={t('tabs.badge.panesHint', { count: entry.paneCount })}>
+				{t('tabs.badge.panes', { count: entry.paneCount })}
+			</span>
+		{/if}
+		{#if isPopout(entry)}
+			<span class="tpane" title={t('tabs.badge.popoutHint')}>
+				{t('tabs.badge.popout')}
+			</span>
+		{/if}
+		{#if entry.pinned}
+			<Icon name="pin" size={12} cls="mpin" />
+		{/if}
+		{#if !entry.isVaultFile}
+			<span class="tflag">{t('tabs.badge.external')}</span>
+		{/if}
+		<button class="mx" title={t('tabs.close')} onclick={(event) => closeEntry(event, entry)}>
+			<Icon name="x" size={12} />
+		</button>
+	</div>
+{/snippet}
 
 <div class="tt-view">
 	<div class="view-head">
@@ -528,8 +609,9 @@
 						onkeydown={(event) => onGroupKeydown(event, group)}
 					>
 						<button
+							type="button"
 							class="twist"
-							title={isFolded(group.id) ? t('group.expand') : t('group.collapse')}
+							title={isFolded(group.id) ? t('group.unfold') : t('group.fold')}
 							onclick={(event) => toggleFold(event, group.id)}
 						>
 							<Icon name="chevron-down" size={14} />
@@ -687,6 +769,38 @@
 				</div>
 			{/each}
 
+			{#if pinned.length > 0}
+				<div class="tsec pinned">
+					<div
+						class="tsec-head"
+						role="button"
+						tabindex="0"
+						onclick={() => foldSection('__pinned')}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								event.preventDefault();
+								foldSection('__pinned');
+							}
+						}}
+					>
+						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__pinned')}>
+							<Icon name="chevron-down" size={14} />
+						</button>
+						<Icon name="pin" size={13} cls="tsec-icon" />
+						<span class="tsec-name">{t('tabs.section.pinned')}</span>
+						<span class="gcount has">{pinned.length}</span>
+					</div>
+
+					{#if !isFolded('__pinned')}
+						<div class="members">
+							{#each pinned as entry (entry.path)}
+								{@render tabRow(entry)}
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+
 			{#if ungrouped.length > 0}
 				<div class="tsec">
 					<div
@@ -701,7 +815,7 @@
 							}
 						}}
 					>
-						<button class="twist" onclick={(event) => toggleFold(event, '__ungrouped')}>
+						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__ungrouped')}>
 							<Icon name="chevron-down" size={14} />
 						</button>
 						<span class="gdot tt-dot-muted"></span>
@@ -712,42 +826,7 @@
 					{#if !isFolded('__ungrouped')}
 						<div class="members">
 							{#each ungrouped as entry (entry.path)}
-								<div
-									class="member tentry"
-									class:active-row={entry.active}
-									role="button"
-									tabindex="0"
-									title={entry.path}
-									onclick={() => onEntryClick(entry)}
-									onkeydown={(event) => onEntryKeydown(event, entry)}
-									oncontextmenu={(event) => onTabContextMenu(event, entry)}
-								>
-									<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
-									<span class="mname">{baseName(entry.path)}</span>
-									{#if entry.paneCount > 1}
-										<span
-											class="tpane"
-											title={t('tabs.badge.panesHint', { count: entry.paneCount })}
-										>
-											{t('tabs.badge.panes', { count: entry.paneCount })}
-										</span>
-									{/if}
-									{#if isPopout(entry)}
-										<span class="tpane" title={t('tabs.badge.popoutHint')}>
-											{t('tabs.badge.popout')}
-										</span>
-									{/if}
-									{#if entry.pinned}
-										<Icon name="pin" size={12} cls="mpin" />
-									{/if}
-									<button
-										class="mx"
-										title={t('tabs.close')}
-										onclick={(event) => closeEntry(event, entry)}
-									>
-										<Icon name="x" size={12} />
-									</button>
-								</div>
+								{@render tabRow(entry)}
 							{/each}
 						</div>
 					{/if}
@@ -768,7 +847,7 @@
 							}
 						}}
 					>
-						<button class="twist" onclick={(event) => toggleFold(event, '__external')}>
+						<button type="button" class="twist" onclick={(event) => toggleFold(event, '__external')}>
 							<Icon name="chevron-down" size={14} />
 						</button>
 						<span class="gdot tt-dot-muted"></span>
@@ -779,43 +858,7 @@
 					{#if !isFolded('__external')}
 						<div class="members">
 							{#each external as entry (entry.path)}
-								<div
-									class="member tentry"
-									class:active-row={entry.active}
-									role="button"
-									tabindex="0"
-									title={entry.path}
-									onclick={() => onEntryClick(entry)}
-									onkeydown={(event) => onEntryKeydown(event, entry)}
-									oncontextmenu={(event) => onTabContextMenu(event, entry)}
-								>
-									<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
-									<span class="mname">{baseName(entry.path)}</span>
-									{#if entry.paneCount > 1}
-										<span
-											class="tpane"
-											title={t('tabs.badge.panesHint', { count: entry.paneCount })}
-										>
-											{t('tabs.badge.panes', { count: entry.paneCount })}
-										</span>
-									{/if}
-									{#if isPopout(entry)}
-										<span class="tpane" title={t('tabs.badge.popoutHint')}>
-											{t('tabs.badge.popout')}
-										</span>
-									{/if}
-									{#if entry.pinned}
-										<Icon name="pin" size={12} cls="mpin" />
-									{/if}
-									<span class="tflag">{t('tabs.badge.external')}</span>
-									<button
-										class="mx"
-										title={t('tabs.close')}
-										onclick={(event) => closeEntry(event, entry)}
-									>
-										<Icon name="x" size={12} />
-									</button>
-								</div>
+								{@render tabRow(entry)}
 							{/each}
 						</div>
 					{/if}
