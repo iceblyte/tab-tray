@@ -85,6 +85,9 @@ export default class TabTrayPlugin extends Plugin {
 
 		const gate: MemberGate = {
 			check: (path) => {
+				// R12 first: an external file is never a candidate, pinned or not.
+				if (this.#tracker.isExternalPath(path)) return 'external';
+
 				const pinned = this.#tracker.isPinned(path);
 
 				// A path the vault index knows is a normal candidate.

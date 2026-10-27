@@ -15,6 +15,7 @@ function leaf(partial: Partial<LeafSnapshot> & { leafId: string }): LeafSnapshot
 	return {
 		path: 'a.md',
 		isVaultFile: true,
+		external: false,
 		pinned: false,
 		windowId: 'w1',
 		paneId: 'p1',

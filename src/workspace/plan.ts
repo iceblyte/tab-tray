@@ -17,6 +17,8 @@ export interface LeafSnapshot {
 	path: string | null;
 	/** False for out-of-vault tabs opened since 1.14 (R12). */
 	isVaultFile: boolean;
+	/** True for a 1.14 file opened from outside the vault (R12). */
+	external: boolean;
 	pinned: boolean;
 	windowId: string;
 	paneId: string;

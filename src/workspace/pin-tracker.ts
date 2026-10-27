@@ -1,6 +1,6 @@
 import { type App, type EventRef, FileView, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { EventHost } from './host';
-import { isAbsolutePath } from './paths';
+import { isExternalPath as isExternalPathString } from './paths';
 import type { LeafSnapshot } from './plan';
 
 /**
@@ -97,10 +97,19 @@ export class PinTracker {
 		);
 	}
 
-	/** R12: is this a real vault path (not an external absolute path)? */
+	/** R12: is this a real vault path (not an external file)? */
 	isVaultPath(path: string): boolean {
-		if (isAbsolutePath(path)) return false;
-		return this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
+		if (isExternalPathString(path)) return false;
+		const file = this.#app.vault.getAbstractFileByPath(path);
+		return file instanceof TFile && !isExternalFile(file);
+	}
+
+	/** R12: is this path open as an external file, or shaped like one? */
+	isExternalPath(path: string): boolean {
+		return (
+			isExternalPathString(path) ||
+			this.#snapshot.leaves.some((leaf) => leaf.external && leaf.path === path)
+		);
 	}
 
 	rescan(): void {
@@ -189,9 +198,13 @@ export class PinTracker {
 		const file = view instanceof FileView ? view.file : null;
 		const path = file?.path ?? null;
 
-		// 1.14 can open files outside the vault. `getAbstractFileByPath` returns
-		// those too, so the vault test alone would classify them as members.
-		const external = isExternalHeader(leaf) || (path !== null && isAbsolutePath(path));
+		// 1.14 can open files outside the vault. Their path is a `file:` pseudo-
+		// path and `getAbstractFileByPath` returns them too, so the vault test
+		// alone would classify them as members.
+		const external =
+			(file !== null && isExternalFile(file)) ||
+			isExternalHeader(leaf) ||
+			(path !== null && isExternalPathString(path));
 		const isVaultFile =
 			path !== null && !external && this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
 
@@ -209,6 +222,7 @@ export class PinTracker {
 			leafId,
 			path,
 			isVaultFile,
+			external,
 			pinned,
 			windowId,
 			paneId: parent ? this.#idForPane(parent) : 'unknown',
@@ -252,6 +266,11 @@ function isInSidebar(el: HTMLElement | undefined): boolean {
 	const split = el?.closest('.workspace-split');
 	if (!split) return false;
 	return split.classList.contains('mod-left-split') || split.classList.contains('mod-right-split');
+}
+
+/** External files are the only `TFile`s that expose `getRealPath()`. */
+function isExternalFile(file: TFile): boolean {
+	return typeof (file as TFile & { getRealPath?: unknown }).getRealPath === 'function';
 }
 
 /** Obsidian marks external-file tab headers with this class. */
