@@ -1,6 +1,6 @@
-import type { App } from 'obsidian';
+import { type App, FileView, type WorkspaceLeaf } from 'obsidian';
 import type { TrayController } from '../controller';
-import { buildColorIndex } from './tab-color-index';
+import { buildColorIndex, buildColorIndexByPath } from './tab-color-index';
 
 /**
  * F4 + group colouring, driven entirely from the tab headers themselves.
@@ -51,7 +51,12 @@ export class PinnedRow {
 		const state = this.#controller.state;
 		const compact =
 			state.data.settings.compactPinnedRow && state.data.settings.compactPinnedRowAvailable;
-		const colors = state.data.settings.groupColors ? buildColorIndex(state.data.groups) : null;
+		const colorEnabled = state.data.settings.groupColors;
+		const colors = colorEnabled ? buildColorIndex(state.data.groups) : null;
+		const pathColors = colorEnabled ? buildColorIndexByPath(state.data.groups) : null;
+		// Exact path lookup first: the tab title drops the extension, so a
+		// name-only index used to miss every markdown file.
+		const pathByHeader = pathColors ? this.#pathByHeader() : null;
 
 		for (const doc of this.#documents()) {
 			for (const header of doc.querySelectorAll<HTMLElement>(HEADER_SELECTOR)) {
@@ -82,13 +87,31 @@ export class PinnedRow {
 					this.#labels.delete(header);
 				}
 
-				const color = colors?.get(title) ?? null;
+				// A known path is authoritative: if that file is not in a group,
+				// do not fall back to a same-named file in one.
+				const path = pathByHeader?.get(header) ?? null;
+				const color = path ? (pathColors?.get(path) ?? null) : (colors?.get(title) ?? null);
 
 				header.classList.toggle(GROUPED_CLASS, color !== null);
 				if (color) header.style.setProperty(GROUP_VAR, `var(--tt-g-${color})`);
 				else header.style.removeProperty(GROUP_VAR);
 			}
 		}
+	}
+
+	/** Exact tab header → vault path pairing, using the leaf's own reference. */
+	#pathByHeader(): Map<HTMLElement, string> {
+		const map = new Map<HTMLElement, string>();
+
+		this.#app.workspace.iterateAllLeaves((leaf) => {
+			const header = (leaf as WorkspaceLeaf & { tabHeaderEl?: HTMLElement }).tabHeaderEl;
+			const view = leaf.view;
+			if (header && view instanceof FileView && view.file) {
+				map.set(header, view.file.path);
+			}
+		});
+
+		return map;
 	}
 
 	/** Every window, including popouts, shares the controller but not the DOM. */
