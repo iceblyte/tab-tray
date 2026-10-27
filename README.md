@@ -18,8 +18,9 @@ save path, and the fallbacks are tested rather than assumed.
   append instead); collapsing closes every tab of the group in the current
   window. Other windows, including popouts, are never touched.
 - **Six ways to add a file** — file explorer menu, tab header menu, drag from
-  the explorer, the remove/× button, drag between groups, and the tab manager.
-  All of them land on the same validated mutation, so they cannot drift apart.
+  the explorer, the hover × button, drag between groups, and the merged
+  sidebar. All of them land on the same validated mutation, so they cannot
+  drift apart.
 - **Compact pinned row** — pinned tabs shrink to icons at the start of the tab
   bar, with the native tooltip intact. Left, right and middle click all keep
   their native behaviour.
