@@ -133,7 +133,19 @@ function supplementTabHeaderMenu(app: App, event: MouseEvent, controller: TrayCo
 	const menu = menuForEvent(event);
 	if (!menu) return;
 
+	// `forEvent` creates a menu when the event has none. That menu is empty,
+	// and an empty menu is never shown — but adding an item to it would make
+	// it show as a stray one-item menu next to the real one. The host's tab
+	// menu always carries at least its close item, so an empty array here
+	// means we are not looking at the host's menu.
+	if (!menuHasItems(menu)) return;
+
 	addToGroupMenuItem(menu, controller, path);
+}
+
+function menuHasItems(menu: Menu): boolean {
+	const items = (menu as unknown as MenuInternals).items;
+	return Array.isArray(items) && items.length > 0;
 }
 
 function menuForEvent(event: MouseEvent): Menu | null {
