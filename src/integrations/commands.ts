@@ -87,7 +87,7 @@ export class CommandRegistry {
 		commands.set('open-tab-manager', {
 			name: t.t('cmd.openTabManager'),
 			callback: () => {
-				void this.#controller.openSidebar('tabs');
+				void this.#controller.openSidebar();
 			},
 		});
 		commands.set('collapse-all-groups', {

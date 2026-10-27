@@ -1,10 +1,12 @@
 <script lang="ts">
+	import { Menu, prepareFuzzySearch } from 'obsidian';
 	import type { TrayController } from '../../controller';
 	import { COLOR_KEYS, type ColorKey, type Group } from '../../core/types';
 	import type { I18nKey } from '../../i18n';
+	import { addToGroupMenuItem } from '../../integrations/menus';
+	import type { TabListEntry } from '../../workspace/plan';
 	import { baseName, iconForPath } from '../file-utils';
 	import Icon from '../Icon.svelte';
-	import TabsPanel from './TabsPanel.svelte';
 
 	let { controller }: { controller: TrayController } = $props();
 
@@ -18,8 +20,7 @@
 	const t = (key: I18nKey, params?: Record<string, string | number>) =>
 		controller.i18n.t(key, params);
 
-	const mode = $derived(state.sidebarMode);
-
+	let query = $state('');
 	let folded = $state<string[]>([]);
 	let renamingId = $state<string | null>(null);
 	let renameValue = $state('');
@@ -32,6 +33,42 @@
 	let groupDrop = $state<{ groupId: string; before: boolean } | null>(null);
 	let memberDrop = $state<{ groupId: string; beforePath: string | null } | null>(null);
 	let externalHoverId = $state<string | null>(null);
+
+	const matcher = $derived(query.trim() ? prepareFuzzySearch(query.trim()) : null);
+
+	function matches(path: string): boolean {
+		const search = matcher;
+		return search ? search(baseName(path)) !== null : true;
+	}
+
+	/** Groups keep their persistent members; a search only narrows what is shown. */
+	const visibleGroups = $derived.by(() => {
+		const search = matcher;
+		return state.data.groups
+			.map((group) => ({
+				group,
+				members: search
+					? group.members.filter((member) => search(baseName(member.path)) !== null)
+					: group.members,
+			}))
+			.filter((entry) => entry.members.length > 0 || !search);
+	});
+
+	/** Open tabs with no group: the old tab list's contribution to the merge. */
+	const ungrouped = $derived(
+		state.tabs.filter(
+			(entry) => entry.isVaultFile && entry.groupId === null && matches(entry.path),
+		),
+	);
+
+	const external = $derived(
+		state.tabs.filter((entry) => !entry.isVaultFile && matches(entry.path)),
+	);
+
+	const tabMap = $derived(new Map(state.tabs.map((entry) => [entry.path, entry])));
+	const isEmpty = $derived(
+		visibleGroups.length === 0 && ungrouped.length === 0 && external.length === 0,
+	);
 
 	$effect(() => {
 		if (!renamingId || !renameInput) return;
@@ -51,6 +88,10 @@
 
 	function toggleFold(event: MouseEvent, groupId: string): void {
 		event.stopPropagation();
+		foldSection(groupId);
+	}
+
+	function foldSection(groupId: string): void {
 		folded = isFolded(groupId) ? folded.filter((id) => id !== groupId) : [...folded, groupId];
 	}
 
@@ -172,9 +213,110 @@
 			: t('member.closedHint');
 	}
 
+	// ------------------------------------------------------------------- tabs
+
+	function isPopout(entry: TabListEntry): boolean {
+		return !entry.windowIds.includes(state.currentWindowId);
+	}
+
+	function onEntryClick(entry: TabListEntry): void {
+		void controller.focusTab(entry.path);
+	}
+
+	function onEntryKeydown(event: KeyboardEvent, entry: TabListEntry): void {
+		if (event.key !== 'Enter' && event.key !== ' ') return;
+		event.preventDefault();
+		onEntryClick(entry);
+	}
+
+	function closeEntry(event: MouseEvent, entry: TabListEntry): void {
+		event.stopPropagation();
+		void controller.closeFile(entry.path);
+	}
+
+	function onTabContextMenu(event: MouseEvent, entry: TabListEntry): void {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const menu = new Menu();
+		menu.addItem((item) =>
+			item
+				.setTitle(entry.pinned ? t('tabs.unpin') : t('tabs.pin'))
+				.setIcon('pin')
+				.onClick(() => controller.setPinned(entry.path, !entry.pinned)),
+		);
+
+		// R12: out-of-vault tabs have no durable path, so only open tabs in the
+		// vault can be added to a group.
+		if (entry.isVaultFile) addToGroupMenuItem(menu, controller, entry.path);
+
+		menu.addSeparator();
+		menu.addItem((item) =>
+			item
+				.setTitle(t('tabs.close'))
+				.setIcon('x')
+				.onClick(() => {
+					void controller.closeFile(entry.path);
+				}),
+		);
+		menu.addItem((item) =>
+			item
+				.setTitle(t('tabs.closeOthers'))
+				.setIcon('x-circle')
+				.onClick(() => {
+					void controller.closeOthers(entry.path);
+				}),
+		);
+
+		menu.showAtMouseEvent(event);
+	}
+
+	/** Members are persistent, so the menu also works when the file is closed. */
+	function onMemberContextMenu(event: MouseEvent, path: string): void {
+		event.preventDefault();
+		event.stopPropagation();
+
+		const entry = tabMap.get(path);
+		const menu = new Menu();
+
+		if (entry) {
+			menu.addItem((item) =>
+				item
+					.setTitle(entry.pinned ? t('tabs.unpin') : t('tabs.pin'))
+					.setIcon('pin')
+					.onClick(() => controller.setPinned(path, !entry.pinned)),
+			);
+		}
+
+		addToGroupMenuItem(menu, controller, path);
+
+		if (entry) {
+			menu.addSeparator();
+			menu.addItem((item) =>
+				item
+					.setTitle(t('tabs.close'))
+					.setIcon('x')
+					.onClick(() => {
+						void controller.closeFile(path);
+					}),
+			);
+			menu.addItem((item) =>
+				item
+					.setTitle(t('tabs.closeOthers'))
+					.setIcon('x-circle')
+					.onClick(() => {
+						void controller.closeOthers(path);
+					}),
+			);
+		}
+
+		menu.showAtMouseEvent(event);
+	}
+
 	// ------------------------------------------------------------------- drag
 
 	function startGroupDrag(event: DragEvent, groupId: string): void {
+		event.stopPropagation();
 		dragGroupId = groupId;
 		dragMember = null;
 		if (event.dataTransfer) {
@@ -184,6 +326,11 @@
 	}
 
 	function startMemberDrag(event: DragEvent, groupId: string, path: string): void {
+		// Reordering a filtered subset would not match what the user sees.
+		if (query.trim()) {
+			event.preventDefault();
+			return;
+		}
 		event.stopPropagation();
 		dragMember = { groupId, path };
 		dragGroupId = null;
@@ -317,214 +464,357 @@
 <div class="tt-view">
 	<div class="view-head">
 		<span class="vh-title">{t('view.groups.title')}</span>
-		{#if mode === 'groups'}
-			<button class="vh-new" onclick={createGroup}>
-				<Icon name="plus" size={12} />
-				<span>{t('view.groups.newGroup')}</span>
+		<button class="vh-new" onclick={createGroup}>
+			<Icon name="plus" size={12} />
+			<span>{t('view.groups.newGroup')}</span>
+		</button>
+	</div>
+
+	<div class="tt-tabs">
+		<div class="tm-tools">
+			<input
+				class="tm-search"
+				bind:value={query}
+				placeholder={t('tabs.search')}
+				onkeydown={(event) => {
+					if (event.key === 'Escape') query = '';
+				}}
+			/>
+			<button class="tm-collapse" title={t('tabs.tidyAllHint')} onclick={() => controller.tidyAll()}>
+				<Icon name="chevrons-left" size={14} />
+				<span>{t('tabs.tidyAll')}</span>
 			</button>
-		{/if}
-	</div>
+		</div>
 
-	<div class="tt-seg" role="tablist">
-		<button
-			type="button"
-			class="tt-seg-btn"
-			class:active={mode === 'groups'}
-			role="tab"
-			aria-selected={mode === 'groups'}
-			onclick={() => controller.setSidebarMode('groups')}
-		>
-			{t('view.mode.groups')}
-		</button>
-		<button
-			type="button"
-			class="tt-seg-btn"
-			class:active={mode === 'tabs'}
-			role="tab"
-			aria-selected={mode === 'tabs'}
-			onclick={() => controller.setSidebarMode('tabs')}
-		>
-			{t('view.mode.tabs')}
-		</button>
-	</div>
+		<div class="glist">
+			{#if isEmpty}
+				<div class="tm-empty">{query.trim() ? t('tabs.noResults') : t('panel.empty')}</div>
+			{/if}
 
-	{#if mode === 'groups'}
-	<div class="glist">
-		{#each state.data.groups as group (group.id)}
-			{@const open = state.openCounts.get(group.id) ?? 0}
-			{@const total = group.members.length}
-			<div
-				class="group gc-{group.color}"
-				role="group"
-				aria-label={group.name}
-				class:folded={isFolded(group.id)}
-				class:dragging={dragGroupId === group.id}
-				class:drop-target={externalHoverId === group.id}
-				ondragover={(event) => onGroupDragOver(event, group.id)}
-				ondrop={(event) => onGroupDrop(event, group.id)}
-			>
-				{#if groupDrop?.groupId === group.id && groupDrop.before}
-					<div class="drop-line"></div>
-				{/if}
-
+			{#each visibleGroups as { group, members } (group.id)}
+				{@const open = state.openCounts.get(group.id) ?? 0}
+				{@const total = group.members.length}
 				<div
-					class="ghead"
-					class:drop-target={memberDrop?.groupId === group.id && memberDrop.beforePath === null}
-					draggable="true"
-					role="button"
-					tabindex="0"
-					ondragstart={(event) => startGroupDrag(event, group.id)}
-					ondragend={endDrag}
-					ondragover={(event) => onHeadDragOver(event, group.id)}
-					ondrop={(event) => onHeadDrop(event, group.id)}
-					onclick={(event) => onGroupClick(event, group)}
-					onkeydown={(event) => onGroupKeydown(event, group)}
+					class="group gc-{group.color}"
+					role="group"
+					aria-label={group.name}
+					class:folded={isFolded(group.id)}
+					class:dragging={dragGroupId === group.id}
+					class:drop-target={externalHoverId === group.id}
+					ondragover={(event) => onGroupDragOver(event, group.id)}
+					ondrop={(event) => onGroupDrop(event, group.id)}
 				>
-					<button
-						class="twist"
-						title={isFolded(group.id) ? t('group.expand') : t('group.collapse')}
-						onclick={(event) => toggleFold(event, group.id)}
-					>
-						<Icon name="chevron-down" size={14} />
-					</button>
-					<span class="gdot"></span>
-
-					{#if renamingId === group.id}
-						<input
-							class="rename"
-							bind:this={renameInput}
-							bind:value={renameValue}
-							placeholder={t('group.namePlaceholder')}
-							onkeydown={onRenameKeydown}
-							onblur={onRenameBlur}
-							onclick={(event) => event.stopPropagation()}
-						/>
-						<span class="rename-acts">
-							<button class="gact" title={t('group.renameConfirm')} onclick={commitRename}>
-								<Icon name="check" size={14} />
-							</button>
-							<button class="gact" title={t('group.renameCancel')} onclick={cancelRename}>
-								<Icon name="x" size={14} />
-							</button>
-						</span>
-					{:else}
-						<span class="gname">{group.name}</span>
-						<span class="gcount" class:has={open > 0} title={t('group.count', { open, total })}>
-							{open}/{total}
-						</span>
-						<span class="gacts">
-							<button
-								class="gact"
-								title={t('group.expand')}
-								onclick={(event) => expandGroup(event, group)}
-							>
-								<Icon name="chevrons-right" size={14} />
-							</button>
-							<button
-								class="gact"
-								title={t('group.collapse')}
-								onclick={(event) => collapseGroup(event, group)}
-							>
-								<Icon name="chevrons-left" size={14} />
-							</button>
-							<button
-								class="gact"
-								title={t('group.more')}
-								onclick={(event) => toggleMenu(event, group.id)}
-							>
-								<Icon name="more-horizontal" size={14} />
-							</button>
-						</span>
+					{#if groupDrop?.groupId === group.id && groupDrop.before}
+						<div class="drop-line"></div>
 					{/if}
-				</div>
 
-				{#if !isFolded(group.id)}
-					<div class="members">
-						{#each group.members as member (member.path)}
-							{#if memberDrop?.groupId === group.id && memberDrop.beforePath === member.path}
-								<div class="drop-line"></div>
-							{/if}
-							<div
-								class="member"
-								class:msusp={state.pinned.has(member.path)}
-								class:mmiss={state.missing.has(member.path)}
-								draggable="true"
-								role="button"
-								tabindex="0"
-								title={memberHint(member.path)}
-								ondragstart={(event) => startMemberDrag(event, group.id, member.path)}
-								ondragend={endDrag}
-								ondragover={(event) => onMemberDragOver(event, group.id, member.path)}
-								ondrop={(event) => onMemberDrop(event, group.id)}
-								onclick={(event) => onMemberClick(event, member.path)}
-								onkeydown={(event) => onMemberKeydown(event, member.path)}
-							>
-								<Icon name={iconForPath(member.path)} size={16} cls="micon" />
-								<span class="mname">{baseName(member.path)}</span>
-								{#if state.pinned.has(member.path)}
-									<Icon name="pin" size={12} cls="mpin" />
-								{/if}
-								{#if state.missing.has(member.path)}
-									<span class="mflag">{t('member.missing')}</span>
-								{/if}
-								<button
-									class="mx"
-									title={t('member.remove')}
-									onclick={(event) => removeMember(event, group.id, member.path)}
-								>
-									<Icon name="x" size={12} />
+					<div
+						class="ghead"
+						class:drop-target={memberDrop?.groupId === group.id && memberDrop.beforePath === null}
+						draggable="true"
+						role="button"
+						tabindex="0"
+						ondragstart={(event) => startGroupDrag(event, group.id)}
+						ondragend={endDrag}
+						ondragover={(event) => onHeadDragOver(event, group.id)}
+						ondrop={(event) => onHeadDrop(event, group.id)}
+						onclick={(event) => onGroupClick(event, group)}
+						onkeydown={(event) => onGroupKeydown(event, group)}
+					>
+						<button
+							class="twist"
+							title={isFolded(group.id) ? t('group.expand') : t('group.collapse')}
+							onclick={(event) => toggleFold(event, group.id)}
+						>
+							<Icon name="chevron-down" size={14} />
+						</button>
+						<span class="gdot"></span>
+
+						{#if renamingId === group.id}
+							<input
+								class="rename"
+								bind:this={renameInput}
+								bind:value={renameValue}
+								placeholder={t('group.namePlaceholder')}
+								onkeydown={onRenameKeydown}
+								onblur={onRenameBlur}
+								onclick={(event) => event.stopPropagation()}
+							/>
+							<span class="rename-acts">
+								<button class="gact" title={t('group.renameConfirm')} onclick={commitRename}>
+									<Icon name="check" size={14} />
 								</button>
-							</div>
-						{/each}
-
-						{#if memberDrop?.groupId === group.id && memberDrop.beforePath === null}
-							<div class="drop-line"></div>
+								<button class="gact" title={t('group.renameCancel')} onclick={cancelRename}>
+									<Icon name="x" size={14} />
+								</button>
+							</span>
+						{:else}
+							<span class="gname">{group.name}</span>
+							<span class="gcount" class:has={open > 0} title={t('group.count', { open, total })}>
+								{open}/{total}
+							</span>
+							<span class="gacts">
+								<button
+									class="gact"
+									title={t('group.expand')}
+									onclick={(event) => expandGroup(event, group)}
+								>
+									<Icon name="chevrons-right" size={14} />
+								</button>
+								<button
+									class="gact"
+									title={t('group.collapse')}
+									onclick={(event) => collapseGroup(event, group)}
+								>
+									<Icon name="chevrons-left" size={14} />
+								</button>
+								<button
+									class="gact"
+									title={t('group.more')}
+									onclick={(event) => toggleMenu(event, group.id)}
+								>
+									<Icon name="more-horizontal" size={14} />
+								</button>
+							</span>
 						{/if}
 					</div>
 
-					{#if total === 0}
-						<div class="gempty">{t('group.empty')}</div>
+					{#if !isFolded(group.id)}
+						<div class="members">
+							{#each members as member (member.path)}
+								{@const tab = tabMap.get(member.path)}
+								{#if memberDrop?.groupId === group.id && memberDrop.beforePath === member.path}
+									<div class="drop-line"></div>
+								{/if}
+								<div
+									class="member tentry"
+									class:msusp={state.pinned.has(member.path)}
+									class:mmiss={state.missing.has(member.path)}
+									class:active-row={tab?.active === true}
+									draggable={!query.trim()}
+									role="button"
+									tabindex="0"
+									title={memberHint(member.path)}
+									ondragstart={(event) => startMemberDrag(event, group.id, member.path)}
+									ondragend={endDrag}
+									ondragover={(event) => onMemberDragOver(event, group.id, member.path)}
+									ondrop={(event) => onMemberDrop(event, group.id)}
+									onclick={(event) => onMemberClick(event, member.path)}
+									onkeydown={(event) => onMemberKeydown(event, member.path)}
+									oncontextmenu={(event) => onMemberContextMenu(event, member.path)}
+								>
+									<Icon name={iconForPath(member.path)} size={16} cls="micon" />
+									<span class="mname">{baseName(member.path)}</span>
+									{#if tab && tab.paneCount > 1}
+										<span
+											class="tpane"
+											title={t('tabs.badge.panesHint', { count: tab.paneCount })}
+										>
+											{t('tabs.badge.panes', { count: tab.paneCount })}
+										</span>
+									{/if}
+									{#if tab && isPopout(tab)}
+										<span class="tpane" title={t('tabs.badge.popoutHint')}>
+											{t('tabs.badge.popout')}
+										</span>
+									{/if}
+									{#if state.pinned.has(member.path)}
+										<Icon name="pin" size={12} cls="mpin" />
+									{/if}
+									{#if state.missing.has(member.path)}
+										<span class="mflag">{t('member.missing')}</span>
+									{/if}
+									<button
+										class="mx"
+										title={t('member.remove')}
+										onclick={(event) => removeMember(event, group.id, member.path)}
+									>
+										<Icon name="x" size={12} />
+									</button>
+								</div>
+							{/each}
+
+							{#if memberDrop?.groupId === group.id && memberDrop.beforePath === null}
+								<div class="drop-line"></div>
+							{/if}
+						</div>
+
+						{#if total === 0}
+							<div class="gempty">{t('group.empty')}</div>
+						{/if}
 					{/if}
-				{/if}
 
-				{#if groupDrop?.groupId === group.id && !groupDrop.before}
-					<div class="drop-line"></div>
-				{/if}
+					{#if groupDrop?.groupId === group.id && !groupDrop.before}
+						<div class="drop-line"></div>
+					{/if}
 
-				{#if menuGroupId === group.id}
-					<div class="tt-popover gmenu open">
-						<button type="button" class="mi" onclick={(event) => startRename(event, group)}>
-							<Icon name="pencil" size={14} cls="mico" />
-							<span>{t('group.rename')}</span>
+					{#if menuGroupId === group.id}
+						<div class="tt-popover gmenu open">
+							<button type="button" class="mi" onclick={(event) => startRename(event, group)}>
+								<Icon name="pencil" size={14} cls="mico" />
+								<span>{t('group.rename')}</span>
+							</button>
+							<button type="button" class="mi" onclick={(event) => openPalette(event, group.id)}>
+								<Icon name="palette" size={14} cls="mico" />
+								<span>{t('group.changeColor')}</span>
+							</button>
+							<div class="msep"></div>
+							<button type="button" class="mi danger" onclick={(event) => askDelete(event, group)}>
+								<Icon name="trash-2" size={14} cls="mico" />
+								<span>{t('group.delete')}</span>
+							</button>
+						</div>
+					{/if}
+
+					{#if paletteGroupId === group.id}
+						<div class="tt-popover gpalette open">
+							{#each COLOR_KEYS as color (color)}
+								<button
+									class="sw gc-{color}"
+									class:cur={group.color === color}
+									aria-label={color}
+									onclick={(event) => pickColor(event, group.id, color)}
+								></button>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/each}
+
+			{#if ungrouped.length > 0}
+				<div class="tsec">
+					<div
+						class="tsec-head"
+						role="button"
+						tabindex="0"
+						onclick={() => foldSection('__ungrouped')}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								event.preventDefault();
+								foldSection('__ungrouped');
+							}
+						}}
+					>
+						<button class="twist" onclick={(event) => toggleFold(event, '__ungrouped')}>
+							<Icon name="chevron-down" size={14} />
 						</button>
-						<button type="button" class="mi" onclick={(event) => openPalette(event, group.id)}>
-							<Icon name="palette" size={14} cls="mico" />
-							<span>{t('group.changeColor')}</span>
-						</button>
-						<div class="msep"></div>
-						<button type="button" class="mi danger" onclick={(event) => askDelete(event, group)}>
-							<Icon name="trash-2" size={14} cls="mico" />
-							<span>{t('group.delete')}</span>
-						</button>
+						<span class="gdot tt-dot-muted"></span>
+						<span class="tsec-name">{t('tabs.section.ungrouped')}</span>
+						<span class="gcount has">{ungrouped.length}</span>
 					</div>
-				{/if}
 
-				{#if paletteGroupId === group.id}
-					<div class="tt-popover gpalette open">
-						{#each COLOR_KEYS as color (color)}
-							<button
-								class="sw gc-{color}"
-								class:cur={group.color === color}
-								aria-label={color}
-								onclick={(event) => pickColor(event, group.id, color)}
-							></button>
-						{/each}
+					{#if !isFolded('__ungrouped')}
+						<div class="members">
+							{#each ungrouped as entry (entry.path)}
+								<div
+									class="member tentry"
+									class:active-row={entry.active}
+									role="button"
+									tabindex="0"
+									title={entry.path}
+									onclick={() => onEntryClick(entry)}
+									onkeydown={(event) => onEntryKeydown(event, entry)}
+									oncontextmenu={(event) => onTabContextMenu(event, entry)}
+								>
+									<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
+									<span class="mname">{baseName(entry.path)}</span>
+									{#if entry.paneCount > 1}
+										<span
+											class="tpane"
+											title={t('tabs.badge.panesHint', { count: entry.paneCount })}
+										>
+											{t('tabs.badge.panes', { count: entry.paneCount })}
+										</span>
+									{/if}
+									{#if isPopout(entry)}
+										<span class="tpane" title={t('tabs.badge.popoutHint')}>
+											{t('tabs.badge.popout')}
+										</span>
+									{/if}
+									{#if entry.pinned}
+										<Icon name="pin" size={12} cls="mpin" />
+									{/if}
+									<button
+										class="mx"
+										title={t('tabs.close')}
+										onclick={(event) => closeEntry(event, entry)}
+									>
+										<Icon name="x" size={12} />
+									</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+
+			{#if external.length > 0}
+				<div class="tsec empty">
+					<div
+						class="tsec-head"
+						role="button"
+						tabindex="0"
+						onclick={() => foldSection('__external')}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								event.preventDefault();
+								foldSection('__external');
+							}
+						}}
+					>
+						<button class="twist" onclick={(event) => toggleFold(event, '__external')}>
+							<Icon name="chevron-down" size={14} />
+						</button>
+						<span class="gdot tt-dot-muted"></span>
+						<span class="tsec-name">{t('tabs.section.external')}</span>
+						<span class="gcount has">{external.length}</span>
 					</div>
-				{/if}
-			</div>
-		{/each}
+
+					{#if !isFolded('__external')}
+						<div class="members">
+							{#each external as entry (entry.path)}
+								<div
+									class="member tentry"
+									class:active-row={entry.active}
+									role="button"
+									tabindex="0"
+									title={entry.path}
+									onclick={() => onEntryClick(entry)}
+									onkeydown={(event) => onEntryKeydown(event, entry)}
+									oncontextmenu={(event) => onTabContextMenu(event, entry)}
+								>
+									<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
+									<span class="mname">{baseName(entry.path)}</span>
+									{#if entry.paneCount > 1}
+										<span
+											class="tpane"
+											title={t('tabs.badge.panesHint', { count: entry.paneCount })}
+										>
+											{t('tabs.badge.panes', { count: entry.paneCount })}
+										</span>
+									{/if}
+									{#if isPopout(entry)}
+										<span class="tpane" title={t('tabs.badge.popoutHint')}>
+											{t('tabs.badge.popout')}
+										</span>
+									{/if}
+									{#if entry.pinned}
+										<Icon name="pin" size={12} cls="mpin" />
+									{/if}
+									<span class="tflag">{t('tabs.badge.external')}</span>
+									<button
+										class="mx"
+										title={t('tabs.close')}
+										onclick={(event) => closeEntry(event, entry)}
+									>
+										<Icon name="x" size={12} />
+									</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/if}
+		</div>
 	</div>
-	{:else}
-		<TabsPanel {controller} />
-	{/if}
 </div>

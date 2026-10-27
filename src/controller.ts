@@ -34,8 +34,6 @@ import {
  * Svelte out of the Obsidian API and makes both views replaceable.
  */
 
-export type SidebarMode = 'groups' | 'tabs';
-
 export interface RuntimeState {
 	data: TrayData;
 	leaves: LeafSnapshot[];
@@ -44,8 +42,6 @@ export interface RuntimeState {
 	missing: ReadonlySet<string>;
 	pinned: ReadonlySet<string>;
 	compactAvailable: boolean;
-	/** Which face of the single sidebar view is showing. */
-	sidebarMode: SidebarMode;
 	/** R11: the window a click would act on right now. */
 	currentWindowId: string;
 	revision: number;
@@ -76,7 +72,6 @@ export class TrayController {
 	#state: RuntimeState;
 	#revision = 0;
 	#firstExpandShown = false;
-	#sidebarMode: SidebarMode = 'groups';
 
 	constructor(deps: ControllerDeps) {
 		this.#app = deps.app;
@@ -386,15 +381,8 @@ export class TrayController {
 		if (result.ok && languageChanged) this.#i18n.notify();
 	}
 
-	/** F1 + F9: one view, two faces. */
-	setSidebarMode(mode: SidebarMode): void {
-		if (this.#sidebarMode === mode) return;
-		this.#sidebarMode = mode;
-		this.#refresh();
-	}
-
-	async openSidebar(mode?: SidebarMode): Promise<void> {
-		if (mode) this.setSidebarMode(mode);
+	/** F1 + F9 live in one list; the old mode switch is gone. */
+	async openSidebar(): Promise<void> {
 		await this.#revealView(VIEW_TYPE_GROUPS, 'left');
 	}
 
@@ -433,7 +421,6 @@ export class TrayController {
 			missing: this.#fileFollow.missing(),
 			pinned,
 			compactAvailable: data.settings.compactPinnedRowAvailable,
-			sidebarMode: this.#sidebarMode,
 			currentWindowId: this.#executor.currentWindowId(),
 			revision: this.#revision,
 		};

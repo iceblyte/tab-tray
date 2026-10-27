@@ -6,8 +6,6 @@ export const en = {
 	// Sidebar (F1)
 	'view.groups.title': 'Tab Tray',
 	'view.groups.newGroup': 'New group',
-	'view.mode.groups': 'Groups',
-	'view.mode.tabs': 'Tabs',
 	'group.defaultName': 'New group',
 	'group.expand': 'Expand (replaces the active pane) · Ctrl/Cmd = append',
 	'group.collapse': 'Collapse',
@@ -44,7 +42,7 @@ export const en = {
 	'modal.newGroup.create': 'Create group',
 
 	// Tab manager (F9)
-	'tabs.search': 'Search open tabs…',
+	'tabs.search': 'Search groups and tabs…',
 	'tabs.tidyAll': 'Tidy all',
 	'tabs.tidyAllHint': 'Collapse every group: pinned, external and ungrouped tabs stay',
 	'tabs.section.ungrouped': 'Ungrouped',
@@ -54,8 +52,7 @@ export const en = {
 	'tabs.badge.panesHint': 'Open in {count} panes',
 	'tabs.badge.popoutHint': 'Open in another window',
 	'tabs.badge.popout': 'Popout',
-	'tabs.empty': 'No open tabs',
-	'tabs.noResults': 'No matching tabs',
+	'tabs.noResults': 'No matching items',
 	'tabs.pin': 'Pin',
 	'tabs.unpin': 'Unpin',
 	'tabs.close': 'Close',
@@ -106,6 +103,9 @@ export const en = {
 	'notice.compactUnavailable':
 		'Compact pinned tabs are unavailable in this Obsidian version — grouping is unaffected.',
 	'notice.rejected': 'The change was rejected ({reason}).',
+
+	// Merged sidebar
+	'panel.empty': 'No groups yet — right-click a file → “Add to group”, or drop files here.',
 
 	// Settings
 	'settings.subtitle': 'Group sidebar + compact pinned row',

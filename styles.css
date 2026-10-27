@@ -179,40 +179,7 @@ body.theme-light {
 	min-height: 0;
 }
 
-/* ---------- mode switch (groups / open tabs) ---------- */
-.tab-tray-view .tt-seg {
-	display: flex;
-	gap: 2px;
-	margin: 0 10px 6px;
-	padding: 2px;
-	border-radius: 6px;
-	background: var(--background-modifier-hover);
-	flex: none;
-}
-
-.tab-tray-view .tt-seg-btn {
-	flex: 1;
-	height: 22px;
-	padding: 0;
-	border: none;
-	box-shadow: none;
-	background: none;
-	border-radius: 4px;
-	font-size: 12px;
-	color: var(--text-muted);
-	cursor: pointer;
-}
-
-.tab-tray-view .tt-seg-btn:hover {
-	color: var(--text-normal);
-}
-
-.tab-tray-view .tt-seg-btn.active {
-	background: var(--background-primary);
-	color: var(--text-normal);
-	box-shadow: var(--shadow-s);
-}
-
+/* ---------- merged list: groups + open tabs ---------- */
 .tab-tray-view .tt-tabs {
 	display: flex;
 	flex-direction: column;

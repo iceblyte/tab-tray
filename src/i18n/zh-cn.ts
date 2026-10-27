@@ -4,8 +4,6 @@ import type { I18nKey } from './en';
 export const zhCN: Record<I18nKey, string> = {
 	'view.groups.title': 'Tab Tray',
 	'view.groups.newGroup': '新建分组',
-	'view.mode.groups': '分组',
-	'view.mode.tabs': '标签',
 	'group.defaultName': '新分组',
 	'group.expand': '展开（替换当前窗格）· Ctrl/Cmd = 追加',
 	'group.collapse': '收起',
@@ -38,7 +36,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'modal.newGroup.cancel': '取消',
 	'modal.newGroup.create': '创建分组',
 
-	'tabs.search': '搜索打开的标签…',
+	'tabs.search': '搜索分组与标签…',
 	'tabs.tidyAll': '一键收纳',
 	'tabs.tidyAllHint': '收起全部分组：固定、库外与未分组标签不动',
 	'tabs.section.ungrouped': '未分组',
@@ -48,8 +46,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'tabs.badge.panesHint': '在 {count} 个窗格中打开',
 	'tabs.badge.popoutHint': '在另一个窗口打开',
 	'tabs.badge.popout': 'Popout',
-	'tabs.empty': '当前没有打开的标签',
-	'tabs.noResults': '没有匹配的标签',
+	'tabs.noResults': '没有匹配的条目',
 	'tabs.pin': '固定',
 	'tabs.unpin': '取消固定',
 	'tabs.close': '关闭',
@@ -92,6 +89,8 @@ export const zhCN: Record<I18nKey, string> = {
 	'notice.corruptPreserved': '无法解析的数据文件已另存为 {file}。',
 	'notice.compactUnavailable': '紧凑固定行在当前 Obsidian 版本不可用，不影响分组功能。',
 	'notice.rejected': '操作被拒绝（{reason}）。',
+
+	'panel.empty': '还没有分组——右键文件「添加到分组」，或把文件拖到这里。',
 
 	'settings.subtitle': '分组侧边栏 + 紧凑固定行',
 	'settings.general.title': '常规',
