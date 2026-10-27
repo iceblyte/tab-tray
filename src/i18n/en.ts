@@ -36,6 +36,13 @@ export const en = {
 	'modal.delete.cancel': 'Cancel',
 	'modal.delete.confirm': 'Delete group',
 
+	// New group (F3-6)
+	'modal.newGroup.title': 'New group',
+	'modal.newGroup.name': 'Name',
+	'modal.newGroup.color': 'Colour',
+	'modal.newGroup.cancel': 'Cancel',
+	'modal.newGroup.create': 'Create group',
+
 	// Tab manager (F9)
 	'tabs.search': 'Search open tabs…',
 	'tabs.tidyAll': 'Tidy all',

@@ -40,14 +40,9 @@
 	});
 
 	function createGroup(): void {
-		const id = controller.createGroup();
-		if (!id) return;
-		// Naming is the very next thing the user wants to do; start the inline
-		// editor instead of leaving a "New group" row behind.
-		folded = folded.filter((item) => item !== id);
-		const group = controller.state.data.groups.find((item) => item.id === id);
-		renamingId = id;
-		renameValue = group?.name ?? '';
+		// Naming and colour happen before anything is written, so cancelling
+		// leaves no stray "New group" behind.
+		controller.promptNewGroup();
 	}
 
 	function isFolded(groupId: string): boolean {

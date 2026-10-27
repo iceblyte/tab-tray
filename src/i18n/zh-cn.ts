@@ -32,6 +32,12 @@ export const zhCN: Record<I18nKey, string> = {
 	'modal.delete.cancel': '取消',
 	'modal.delete.confirm': '删除分组',
 
+	'modal.newGroup.title': '新建分组',
+	'modal.newGroup.name': '名称',
+	'modal.newGroup.color': '颜色',
+	'modal.newGroup.cancel': '取消',
+	'modal.newGroup.create': '创建分组',
+
 	'tabs.search': '搜索打开的标签…',
 	'tabs.tidyAll': '一键收纳',
 	'tabs.tidyAllHint': '收起全部分组：固定、库外与未分组标签不动',

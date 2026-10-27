@@ -13,6 +13,7 @@ import type { I18n } from './i18n';
 import { readDroppedFiles } from './integrations/dnd';
 import { ConfirmModal } from './ui/confirm-modal';
 import { baseName } from './ui/file-utils';
+import { NewGroupModal } from './ui/new-group-modal';
 import { VIEW_TYPE_GROUPS } from './ui/view-types';
 import type { WorkspaceExecutor } from './workspace/execute';
 import type { FileFollow } from './workspace/file-follow';
@@ -120,18 +121,40 @@ export class TrayController {
 
 	// ------------------------------------------------------------------ groups
 
-	createGroup(name?: string): string | null {
+	createGroup(name?: string, color?: ColorKey): string | null {
 		const groups = this.#state.data.groups;
-		const color: ColorKey = COLOR_KEYS[groups.length % COLOR_KEYS.length] ?? 'blue';
+		const nextColor: ColorKey = color ?? COLOR_KEYS[groups.length % COLOR_KEYS.length] ?? 'blue';
 		const result = this.#store.applyMutation({
 			op: 'group.create',
 			name: name ?? this.#i18n.t('group.defaultName'),
-			color,
+			color: nextColor,
 		});
 		if (!result.ok) return null;
 
 		const next = this.#store.snapshot().groups;
 		return next[next.length - 1]?.id ?? null;
+	}
+
+	/**
+	 * F3-6 — one dialog for every "new group" entry point.
+	 *
+	 * `onCreated` runs after the group exists, which is what lets the context
+	 * menu create a named, coloured group and move the file into it in a single
+	 * user gesture.
+	 */
+	promptNewGroup(onCreated?: (groupId: string) => void): void {
+		const groups = this.#state.data.groups;
+		const color = COLOR_KEYS[groups.length % COLOR_KEYS.length] ?? 'blue';
+
+		new NewGroupModal(this.#app, {
+			i18n: this.#i18n,
+			initialName: this.#i18n.t('group.defaultName'),
+			initialColor: color,
+			onSubmit: (name, chosen) => {
+				const id = this.createGroup(name, chosen);
+				if (id && onCreated) onCreated(id);
+			},
+		}).open();
 	}
 
 	renameGroup(groupId: string, name: string): boolean {

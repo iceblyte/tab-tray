@@ -769,6 +769,50 @@ body.theme-light {
 	margin-top: 18px;
 }
 
+/* ---------- new-group modal (F3-6) ---------- */
+.tab-tray-new-group .tt-field {
+	margin-bottom: 16px;
+}
+
+.tab-tray-new-group .tt-field-label {
+	display: block;
+	margin-bottom: 6px;
+	font-size: var(--font-ui-small);
+	color: var(--text-muted);
+}
+
+.tab-tray-new-group input[type='text'] {
+	width: 100%;
+}
+
+.tab-tray-new-group .tt-swatches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 9px;
+	padding: 2px;
+}
+
+.tab-tray-new-group .tt-swatch {
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: var(--gc);
+	border: none;
+	padding: 0;
+	box-shadow: none;
+	cursor: pointer;
+}
+
+.tab-tray-new-group .tt-swatch:hover {
+	transform: scale(1.12);
+}
+
+.tab-tray-new-group .tt-swatch.cur {
+	box-shadow:
+		0 0 0 2px var(--modal-background, var(--background-primary)),
+		0 0 0 4px var(--gc);
+}
+
 /* ---------- settings ---------- */
 .tab-tray-settings-header h2 {
 	margin-bottom: 2px;

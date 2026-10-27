@@ -69,7 +69,7 @@ export class CommandRegistry {
 		commands.set('new-group', {
 			name: t.t('cmd.newGroup'),
 			callback: () => {
-				this.#controller.createGroup();
+				this.#controller.promptNewGroup();
 			},
 		});
 		commands.set('collapse-active-group', {
