@@ -51,11 +51,13 @@ Until the plugin is in the community store, install it manually:
 
 ## Usage
 
-Open the sidebar from the ribbon (archive icon) or with the command **Open group
-sidebar**. One list shows your groups first, then pinned tabs, ungrouped tabs
-and tabs outside the vault. Create a group, then add files by right-clicking them in the
-file explorer or on a tab header. A tab that is already in a group offers
-**Remove from "…"** in the same menu.
+Open the sidebar from the ribbon (the stacked-tabs icon) or with the command
+**Open group sidebar**. The list opens with three fixed sections — pinned,
+ungrouped and outside-the-vault tabs — then a rule, then your groups. The three
+sections are always visible, even when empty, so their counts are readable at a
+glance. Create a group, then add files by right-clicking them in the file
+explorer or on a tab header. A tab that is already in a group offers **Remove
+from "…"** in the same menu.
 
 Clicking a group name toggles it: it collapses if any member is open in the
 current window, and expands otherwise. Holding Ctrl/Cmd while expanding appends
