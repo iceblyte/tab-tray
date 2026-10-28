@@ -51,35 +51,6 @@ export interface Group {
 	members: Member[];
 }
 
-/**
- * The three sections below the groups in the sidebar. They are derived views,
- * not data, so only their display order is persisted.
- */
-export const SECTION_KINDS = ['pinned', 'ungrouped', 'external'] as const;
-export type SectionKind = (typeof SECTION_KINDS)[number];
-
-export function isSectionKind(value: unknown): value is SectionKind {
-	return typeof value === 'string' && (SECTION_KINDS as readonly string[]).includes(value);
-}
-
-/**
- * Repairs an order array: unknown entries dropped, duplicates dropped, and any
- * section the user has never dragged appended in the default position. This is
- * what keeps a hand-edited or older data.json from hiding a section.
- */
-export function parseSectionOrder(raw: unknown): SectionKind[] {
-	if (!Array.isArray(raw)) return [...SECTION_KINDS];
-
-	const seen: SectionKind[] = [];
-	for (const value of raw) {
-		if (isSectionKind(value) && !seen.includes(value)) seen.push(value);
-	}
-	for (const kind of SECTION_KINDS) {
-		if (!seen.includes(kind)) seen.push(kind);
-	}
-	return seen;
-}
-
 export interface Settings {
 	language: Language;
 	/** F4: user-facing switch for the compact pinned row. */
@@ -90,8 +61,6 @@ export interface Settings {
 	groupColors: boolean;
 	/** R9: warn once past this many members in a group, never block. */
 	softLimit: number;
-	/** Display order of the pinned / ungrouped / external sections. */
-	sectionOrder: SectionKind[];
 }
 
 export interface TrayData {
@@ -107,7 +76,6 @@ export const DEFAULT_SETTINGS: Settings = {
 	compactPinnedRowAvailable: true,
 	groupColors: true,
 	softLimit: DEFAULT_SOFT_LIMIT,
-	sectionOrder: [...SECTION_KINDS],
 };
 
 export function createEmptyData(): TrayData {
@@ -174,7 +142,6 @@ export function parseSettings(raw: unknown): Settings {
 			typeof raw.softLimit === 'number'
 				? clampSoftLimit(raw.softLimit)
 				: DEFAULT_SETTINGS.softLimit,
-		sectionOrder: parseSectionOrder(raw.sectionOrder),
 	};
 }
 

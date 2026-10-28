@@ -258,26 +258,6 @@ describe('settings and change events', () => {
 		expect(store.snapshot().settings.softLimit).toBe(1);
 	});
 
-	it('stores a section order and repairs it on the way in', () => {
-		const store = makeStore();
-		const result = store.applyMutation({
-			op: 'settings.update',
-			patch: { sectionOrder: ['external', 'ungrouped'] },
-		});
-		expect(result.ok).toBe(true);
-		expect(store.snapshot().settings.sectionOrder).toEqual(['external', 'ungrouped', 'pinned']);
-	});
-
-	it('rejects a section order that is not an array', () => {
-		const store = makeStore();
-		expect(
-			store.applyMutation({
-				op: 'settings.update',
-				patch: { sectionOrder: 'pinned' as unknown as ['pinned'] },
-			}),
-		).toEqual({ ok: false, error: 'invalid-setting' });
-	});
-
 	it('rejects an invalid language', () => {
 		const store = makeStore();
 		expect(

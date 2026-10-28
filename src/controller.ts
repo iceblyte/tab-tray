@@ -6,7 +6,6 @@ import {
 	findGroup,
 	findGroupOfPath,
 	type Group,
-	type SectionKind,
 	type Settings,
 	type TrayData,
 } from './core/types';
@@ -409,11 +408,6 @@ export class TrayController {
 		const languageChanged = patch.language !== undefined;
 		const result = this.#store.applyMutation({ op: 'settings.update', patch });
 		if (result.ok && languageChanged) this.#i18n.notify();
-	}
-
-	/** Drag-to-reorder for the pinned / ungrouped / external sections. */
-	reorderSections(order: SectionKind[]): void {
-		this.updateSettings({ sectionOrder: order });
 	}
 
 	/** F1 + F9 live in one list; the old mode switch is gone. */

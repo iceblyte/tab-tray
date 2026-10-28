@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Menu, prepareFuzzySearch } from 'obsidian';
 	import type { TrayController } from '../../controller';
-	import { COLOR_KEYS, type ColorKey, type Group, type SectionKind } from '../../core/types';
+	import { COLOR_KEYS, type ColorKey, type Group } from '../../core/types';
 	import type { I18nKey } from '../../i18n';
 	import { addToGroupMenuItem } from '../../integrations/menus';
 	import type { TabListEntry } from '../../workspace/plan';
@@ -30,14 +30,14 @@
 
 	let dragGroupId = $state<string | null>(null);
 	let dragMember = $state<{ groupId: string; path: string } | null>(null);
-	let dragSectionId = $state<string | null>(null);
 	let groupDrop = $state<{ groupId: string; before: boolean } | null>(null);
 	let memberDrop = $state<{ groupId: string; beforePath: string | null } | null>(null);
-	let sectionDrop = $state<{ id: string; before: boolean } | null>(null);
 	let externalHoverId = $state<string | null>(null);
 
 	/** Sentinel source for an open tab that is not in any group yet. */
 	const UNGROUPED = '__ungrouped';
+
+	type SectionKind = 'pinned' | 'ungrouped' | 'external';
 
 	interface SystemSection {
 		/** Section kind doubles as the fold key; group ids are UUIDs. */
@@ -47,10 +47,11 @@
 	}
 
 	/**
-	 * Order lives in settings so a drag survives a restart. The three sections
-	 * are derived views, not data, so nothing else about them is stored.
+	 * Fixed order, deliberately not draggable: these three sections can only
+	 * ever be sorted among themselves, so a reorder would be a hidden setting
+	 * with no payoff. A rule separates them from the groups instead.
 	 */
-	const sectionOrder = $derived(state.data.settings.sectionOrder);
+	const SECTION_ORDER: SectionKind[] = ['pinned', 'ungrouped', 'external'];
 
 	const matcher = $derived(query.trim() ? prepareFuzzySearch(query.trim()) : null);
 
@@ -107,7 +108,7 @@
 	);
 
 	const systemSections = $derived.by((): SystemSection[] =>
-		sectionOrder
+		SECTION_ORDER
 			.map((kind): SystemSection => {
 				const entries =
 					kind === 'pinned' ? pinned : kind === 'ungrouped' ? ungrouped : external;
@@ -377,7 +378,6 @@
 		event.stopPropagation();
 		dragGroupId = groupId;
 		dragMember = null;
-		dragSectionId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-group', groupId);
@@ -398,7 +398,6 @@
 		event.stopPropagation();
 		dragMember = { groupId, path };
 		dragGroupId = null;
-		dragSectionId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData('application/x-tab-tray-member', JSON.stringify({ groupId, path }));
@@ -418,7 +417,6 @@
 		event.stopPropagation();
 		dragMember = { groupId: UNGROUPED, path };
 		dragGroupId = null;
-		dragSectionId = null;
 		if (event.dataTransfer) {
 			event.dataTransfer.effectAllowed = 'move';
 			event.dataTransfer.setData(
@@ -427,45 +425,6 @@
 			);
 			event.dataTransfer.setData('text/plain', path);
 		}
-	}
-
-	function startSectionDrag(event: DragEvent, id: SectionKind): void {
-		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
-			event.preventDefault();
-			return;
-		}
-		event.stopPropagation();
-		dragSectionId = id;
-		dragGroupId = null;
-		dragMember = null;
-		if (event.dataTransfer) {
-			event.dataTransfer.effectAllowed = 'move';
-			event.dataTransfer.setData('application/x-tab-tray-section', id);
-			event.dataTransfer.setData('text/plain', id);
-		}
-	}
-
-	function onSectionDragOver(event: DragEvent, id: SectionKind): void {
-		if (!dragSectionId || dragSectionId === id) return;
-		event.preventDefault();
-		event.stopPropagation();
-		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
-		sectionDrop = { id, before: event.clientY < rect.top + rect.height / 2 };
-		if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
-	}
-
-	function onSectionDrop(event: DragEvent, id: SectionKind): void {
-		if (!dragSectionId) return;
-		event.preventDefault();
-		event.stopPropagation();
-
-		const moved = dragSectionId as SectionKind;
-		const order = sectionOrder.filter((token) => token !== moved);
-		const index = order.indexOf(id);
-		const before = sectionDrop?.before ?? true;
-		order.splice(before ? index : index + 1, 0, moved);
-		controller.reorderSections(order);
-		endDrag();
 	}
 
 	function dropMember(targetGroupId: string, beforePath: string | null): void {
@@ -482,15 +441,12 @@
 	function endDrag(): void {
 		dragGroupId = null;
 		dragMember = null;
-		dragSectionId = null;
 		groupDrop = null;
 		memberDrop = null;
-		sectionDrop = null;
 		externalHoverId = null;
 	}
 
 	function onHeadDragOver(event: DragEvent, groupId: string): void {
-		if (dragSectionId) return;
 		if (dragGroupId) {
 			if (dragGroupId === groupId) return;
 			event.preventDefault();
@@ -516,7 +472,7 @@
 	}
 
 	function onMemberDragOver(event: DragEvent, groupId: string, path: string): void {
-		if (dragSectionId || !dragMember) return;
+		if (!dragMember) return;
 		event.preventDefault();
 		event.stopPropagation();
 		const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
@@ -529,7 +485,6 @@
 	}
 
 	function onHeadDrop(event: DragEvent, groupId: string): void {
-		if (dragSectionId) return;
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -548,8 +503,8 @@
 	}
 
 	function onMemberDrop(event: DragEvent, groupId: string): void {
-		// Group and section drags are handled by their containers.
-		if (dragSectionId || dragGroupId) return;
+		// Group drags are handled by their container.
+		if (dragGroupId) return;
 		event.preventDefault();
 		event.stopPropagation();
 		if (dragMember) {
@@ -561,7 +516,6 @@
 	}
 
 	function onGroupDragOver(event: DragEvent, groupId: string): void {
-		if (dragSectionId) return;
 		event.preventDefault();
 
 		if (dragGroupId) {
@@ -582,7 +536,6 @@
 	}
 
 	function onGroupDrop(event: DragEvent, groupId: string): void {
-		if (dragSectionId) return;
 		event.preventDefault();
 		event.stopPropagation();
 
@@ -884,28 +837,16 @@
 				</div>
 			{/each}
 
-			{#each systemSections as section (section.id)}
-				<div
-					class="tsec"
-					class:empty={section.kind === 'external'}
-					class:dragging={dragSectionId === section.id}
-					class:drop-target={sectionDrop?.id === section.id}
-					role="group"
-					aria-label={sectionName(section.kind)}
-					ondragover={(event) => onSectionDragOver(event, section.id)}
-					ondrop={(event) => onSectionDrop(event, section.id)}
-				>
-					{#if sectionDrop?.id === section.id && sectionDrop.before}
-						<div class="drop-line"></div>
-					{/if}
+			{#if systemSections.length > 0 && visibleGroups.length > 0}
+				<div class="tsec-rule" role="separator"></div>
+			{/if}
 
+			{#each systemSections as section (section.id)}
+				<div class="tsec" class:empty={section.kind === 'external'} role="group" aria-label={sectionName(section.kind)}>
 					<div
 						class="tsec-head"
 						role="button"
 						tabindex="0"
-						draggable="true"
-						ondragstart={(event) => startSectionDrag(event, section.id)}
-						ondragend={endDrag}
 						onclick={() => foldSection(section.id)}
 						onkeydown={(event) => {
 							if (event.key === 'Enter' || event.key === ' ') {
@@ -932,10 +873,6 @@
 								{@render tabRow(entry)}
 							{/each}
 						</div>
-					{/if}
-
-					{#if sectionDrop?.id === section.id && !sectionDrop.before}
-						<div class="drop-line"></div>
 					{/if}
 				</div>
 			{/each}

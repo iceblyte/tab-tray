@@ -9,7 +9,6 @@ import {
 	type Member,
 	MIN_SOFT_LIMIT,
 	normalizeVaultPath,
-	parseSectionOrder,
 	type Settings,
 	type TrayData,
 } from './types';
@@ -383,11 +382,6 @@ export class TrayStore {
 				MAX_SOFT_LIMIT,
 				Math.max(MIN_SOFT_LIMIT, Math.round(patch.softLimit)),
 			);
-		}
-		if (patch.sectionOrder !== undefined) {
-			if (!Array.isArray(patch.sectionOrder)) return fail('invalid-setting');
-			// Same repair as the read path, so a drag can never drop a section.
-			settings.sectionOrder = parseSectionOrder(patch.sectionOrder);
 		}
 
 		this.#commit({ ...this.#data, settings });
