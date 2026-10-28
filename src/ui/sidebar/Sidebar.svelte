@@ -108,13 +108,10 @@
 	);
 
 	const systemSections = $derived.by((): SystemSection[] =>
-		SECTION_ORDER
-			.map((kind): SystemSection => {
-				const entries =
-					kind === 'pinned' ? pinned : kind === 'ungrouped' ? ungrouped : external;
-				return { id: kind, kind, entries };
-			})
-			.filter((section) => section.entries.length > 0),
+		SECTION_ORDER.map((kind): SystemSection => {
+			const entries = kind === 'pinned' ? pinned : kind === 'ungrouped' ? ungrouped : external;
+			return { id: kind, kind, entries };
+		}),
 	);
 
 	function sectionName(kind: SectionKind): string {
@@ -642,6 +639,53 @@
 		</div>
 
 		<div class="glist">
+			{#each systemSections as section (section.id)}
+				<div
+					class="tsec"
+					class:empty={section.entries.length === 0}
+					role="group"
+					aria-label={sectionName(section.kind)}
+				>
+					<div
+						class="tsec-head"
+						role="button"
+						tabindex="0"
+						onclick={() => foldSection(section.id)}
+						onkeydown={(event) => {
+							if (event.key === 'Enter' || event.key === ' ') {
+								event.preventDefault();
+								foldSection(section.id);
+							}
+						}}
+					>
+						<button type="button" class="twist" onclick={(event) => toggleFold(event, section.id)}>
+							<Icon name="chevron-down" size={14} />
+						</button>
+						{#if section.kind === 'pinned'}
+							<Icon name="pin" size={13} cls="tsec-icon" />
+						{:else}
+							<span class="gdot tt-dot-muted"></span>
+						{/if}
+						<span class="tsec-name">{sectionName(section.kind)}</span>
+						<span class="gcount" class:has={section.entries.length > 0}>
+							{section.entries.length}
+						</span>
+					</div>
+
+					{#if !isFolded(section.id)}
+						<div class="members">
+							{#each section.entries as entry (entry.path)}
+								{@render tabRow(entry)}
+							{/each}
+						</div>
+					{/if}
+				</div>
+			{/each}
+
+			{#if visibleGroups.length > 0}
+				<div class="tsec-rule" role="separator"></div>
+			{/if}
+
 			{#if isEmpty}
 				<div class="tm-empty">{query.trim() ? t('tabs.noResults') : t('panel.empty')}</div>
 			{/if}
@@ -831,46 +875,6 @@
 									aria-label={color}
 									onclick={(event) => pickColor(event, group.id, color)}
 								></button>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			{/each}
-
-			{#if systemSections.length > 0 && visibleGroups.length > 0}
-				<div class="tsec-rule" role="separator"></div>
-			{/if}
-
-			{#each systemSections as section (section.id)}
-				<div class="tsec" class:empty={section.kind === 'external'} role="group" aria-label={sectionName(section.kind)}>
-					<div
-						class="tsec-head"
-						role="button"
-						tabindex="0"
-						onclick={() => foldSection(section.id)}
-						onkeydown={(event) => {
-							if (event.key === 'Enter' || event.key === ' ') {
-								event.preventDefault();
-								foldSection(section.id);
-							}
-						}}
-					>
-						<button type="button" class="twist" onclick={(event) => toggleFold(event, section.id)}>
-							<Icon name="chevron-down" size={14} />
-						</button>
-						{#if section.kind === 'pinned'}
-							<Icon name="pin" size={13} cls="tsec-icon" />
-						{:else}
-							<span class="gdot tt-dot-muted"></span>
-						{/if}
-						<span class="tsec-name">{sectionName(section.kind)}</span>
-						<span class="gcount has">{section.entries.length}</span>
-					</div>
-
-					{#if !isFolded(section.id)}
-						<div class="members">
-							{#each section.entries as entry (entry.path)}
-								{@render tabRow(entry)}
 							{/each}
 						</div>
 					{/if}
