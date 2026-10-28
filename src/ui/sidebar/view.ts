@@ -1,5 +1,6 @@
 import { ItemView, type WorkspaceLeaf } from 'obsidian';
 import type { TrayController } from '../../controller';
+import { TRAY_ICON_ID } from '../icons';
 import { VIEW_TYPE_GROUPS } from '../view-types';
 import { mountSidebar } from './mount';
 
@@ -22,7 +23,7 @@ export class GroupsView extends ItemView {
 	}
 
 	override getIcon(): string {
-		return 'archive';
+		return TRAY_ICON_ID;
 	}
 
 	override async onOpen(): Promise<void> {

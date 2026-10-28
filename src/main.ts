@@ -9,6 +9,7 @@ import { CommandRegistry } from './integrations/commands';
 import { registerMenus } from './integrations/menus';
 import { TabTraySettingTab } from './settings';
 import { baseName } from './ui/file-utils';
+import { registerTrayIcon, TRAY_ICON_ID } from './ui/icons';
 import { PinnedRow } from './ui/pinned-row';
 import { GroupsView } from './ui/sidebar/view';
 import { LEGACY_VIEW_TYPE_MANAGER, VIEW_TYPE_GROUPS } from './ui/view-types';
@@ -131,8 +132,10 @@ export default class TabTrayPlugin extends Plugin {
 		this.registerView(VIEW_TYPE_GROUPS, (leaf) => new GroupsView(leaf, this.#controller));
 
 		// One view, one ribbon entry: the open-tab list lives inside it as the
-		// second mode, so there is nothing left to open separately.
-		this.addRibbonIcon('archive', this.#i18n.t('cmd.openSidebar'), () => {
+		// second mode, so there is nothing left to open separately. The icon is
+		// registered up front because `addRibbonIcon` resolves it immediately.
+		registerTrayIcon();
+		this.addRibbonIcon(TRAY_ICON_ID, this.#i18n.t('cmd.openSidebar'), () => {
 			void this.#controller.openSidebar();
 		});
 
