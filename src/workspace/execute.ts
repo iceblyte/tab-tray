@@ -227,8 +227,11 @@ export class WorkspaceExecutor {
 	}
 
 	setPinned(path: string, pinned: boolean): boolean {
+		// Pinning is a leaf-level action, so it works for every file tab —
+		// including the 1.14 external ones, whose `isVaultFile` is false but
+		// which the host still pins from its own tab menu.
 		const leaves = this.#tracker.snapshot.leaves.filter(
-			(leaf) => leaf.isVaultFile && leaf.path === path,
+			(leaf) => !leaf.inSidebar && leaf.path === path,
 		);
 		let changed = false;
 		for (const snapshot of leaves) {
