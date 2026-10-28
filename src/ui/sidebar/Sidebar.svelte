@@ -149,21 +149,21 @@
 		return target instanceof HTMLElement && !!target.closest('button, input, .tt-popover');
 	}
 
-	function activateGroup(group: Group, append: boolean): void {
-		if (renamingId) return;
-		void controller.toggleGroup(group.id, append ? 'append' : 'replace');
-	}
-
+	/**
+	 * A click on the row folds the list, nothing else. Opening and closing the
+	 * group's tabs is what the two chevron buttons are for — the row used to do
+	 * both, so aiming at the twist often hit the row and closed tabs instead.
+	 */
 	function onGroupClick(event: MouseEvent, group: Group): void {
-		if (isInteractive(event.target)) return;
-		activateGroup(group, event.ctrlKey || event.metaKey);
+		if (isInteractive(event.target) || renamingId) return;
+		foldSection(group.id);
 	}
 
 	function onGroupKeydown(event: KeyboardEvent, group: Group): void {
 		if (event.key !== 'Enter' && event.key !== ' ') return;
 		if (isInteractive(event.target)) return;
 		event.preventDefault();
-		activateGroup(group, event.ctrlKey || event.metaKey);
+		foldSection(group.id);
 	}
 
 	function expandGroup(event: MouseEvent, group: Group): void {
@@ -365,10 +365,22 @@
 
 	// ------------------------------------------------------------------- drag
 
+	/**
+	 * Where the current press started. `dragstart` fires on the draggable
+	 * container, so its `event.target` is the row — never the button — and
+	 * checking it there can't tell "pressed the twist" from "pressed the row".
+	 * Remembering the mousedown target is the only reliable way to keep a
+	 * press on a button from turning into a drag that swallows the click.
+	 */
+	let pressedOnButton = false;
+
+	function rememberPress(event: MouseEvent): void {
+		pressedOnButton =
+			event.target instanceof HTMLElement && event.target.closest('button, input') !== null;
+	}
+
 	function startGroupDrag(event: DragEvent, groupId: string): void {
-		// A drag that starts on a button must stay a click. Without this the
-		// group head's draggable attribute swallows the expand/collapse buttons.
-		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+		if (pressedOnButton) {
 			event.preventDefault();
 			return;
 		}
@@ -384,11 +396,7 @@
 
 	function startMemberDrag(event: DragEvent, groupId: string, path: string): void {
 		// Reordering a filtered subset would not match what the user sees.
-		if (query.trim()) {
-			event.preventDefault();
-			return;
-		}
-		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+		if (query.trim() || pressedOnButton) {
 			event.preventDefault();
 			return;
 		}
@@ -403,11 +411,7 @@
 	}
 
 	function startOpenTabDrag(event: DragEvent, path: string): void {
-		if (query.trim()) {
-			event.preventDefault();
-			return;
-		}
-		if (event.target instanceof HTMLElement && event.target.closest('button, input')) {
+		if (query.trim() || pressedOnButton) {
 			event.preventDefault();
 			return;
 		}
@@ -577,6 +581,7 @@
 		role="button"
 		tabindex="0"
 		title={entry.path}
+		onmousedown={rememberPress}
 		ondragstart={(event) => {
 			if (!canDrag) {
 				event.preventDefault();
@@ -643,6 +648,7 @@
 				<div
 					class="tsec"
 					class:empty={section.entries.length === 0}
+					class:folded={isFolded(section.id)}
 					role="group"
 					aria-label={sectionName(section.kind)}
 				>
@@ -713,6 +719,8 @@
 						draggable="true"
 						role="button"
 						tabindex="0"
+						title={isFolded(group.id) ? t('group.unfold') : t('group.fold')}
+						onmousedown={rememberPress}
 						ondragstart={(event) => startGroupDrag(event, group.id)}
 						ondragend={endDrag}
 						ondragover={(event) => onHeadDragOver(event, group.id)}
@@ -795,6 +803,7 @@
 									role="button"
 									tabindex="0"
 									title={memberHint(member.path)}
+									onmousedown={rememberPress}
 									ondragstart={(event) => startMemberDrag(event, group.id, member.path)}
 									ondragend={endDrag}
 									ondragover={(event) => onMemberDragOver(event, group.id, member.path)}

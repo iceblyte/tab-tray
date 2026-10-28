@@ -327,18 +327,6 @@ export class TrayController {
 		);
 	}
 
-	async toggleGroup(groupId: string, mode: ExpandMode = 'replace'): Promise<void> {
-		// A modifier always means "add to what is there", even when the group is
-		// already partly open — otherwise Ctrl+click would collapse instead.
-		if (mode === 'append') {
-			await this.expandGroup(groupId, 'append');
-			return;
-		}
-		const open = this.#state.openCounts.get(groupId) ?? 0;
-		if (open > 0) await this.collapseGroup(groupId);
-		else await this.expandGroup(groupId, 'replace');
-	}
-
 	async tidyAll(): Promise<void> {
 		const groups = this.#state.data.groups;
 		if (groups.length === 0) return;
