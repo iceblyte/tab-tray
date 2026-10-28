@@ -175,7 +175,13 @@ body.theme-light {
 
 .tab-tray-view .glist {
 	flex: 1;
-	overflow: auto;
+	overflow-y: auto;
+	overflow-x: hidden;
+	/* Reserve the scrollbar gutter. Folding a section changes the content
+	   height, so without this the whole list reflows ~15px wider when the
+	   scrollbar drops out and narrower when it comes back — every row visibly
+	   jumps at the moment of the click. */
+	scrollbar-gutter: stable;
 	padding: 2px 6px 16px;
 	min-height: 0;
 }
