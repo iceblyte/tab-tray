@@ -211,7 +211,15 @@ export class WorkspaceExecutor {
 	/** F9: reveal a specific open tab, even in another window. */
 	async focusPath(path: string): Promise<boolean> {
 		const windowId = this.currentWindowId();
-		const plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
+		let plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
+
+		// The list can be one layout tick ahead of the tracker (a tab opened or
+		// pinned a moment ago). One rescan is cheap and turns a dead click into
+		// the expected jump.
+		if (plan.kind !== 'focus') {
+			this.#tracker.rescan();
+			plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
+		}
 		if (plan.kind !== 'focus') return false;
 
 		const leaf = this.#tracker.leafById(plan.leafId);

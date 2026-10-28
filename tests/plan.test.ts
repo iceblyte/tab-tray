@@ -220,6 +220,21 @@ describe('planOpenMember', () => {
 	it('asks to open when the file is not open anywhere', () => {
 		expect(planOpenMember('a.md', 'w1', [])).toEqual({ kind: 'open' });
 	});
+
+	it('focuses an external tab, which is not a vault file', () => {
+		const leaves = [
+			leaf({ leafId: 'x1', path: 'file:/tmp/x.md', isVaultFile: false, external: true }),
+		];
+		expect(planOpenMember('file:/tmp/x.md', 'w1', leaves)).toEqual({
+			kind: 'focus',
+			leafId: 'x1',
+		});
+	});
+
+	it('never focuses a sidebar leaf', () => {
+		const leaves = [leaf({ leafId: 's1', path: 'a.md', inSidebar: true })];
+		expect(planOpenMember('a.md', 'w1', leaves)).toEqual({ kind: 'open' });
+	});
 });
 
 describe('planCloseFile / planCloseOthers / planTidyAll', () => {

@@ -231,9 +231,11 @@ export function planOpenMember(
 	windowId: string,
 	leaves: LeafSnapshot[],
 ): { kind: 'focus'; leafId: string } | { kind: 'open' } {
-	const candidates = leaves.filter(
-		(leaf) => !leaf.inSidebar && leaf.isVaultFile && leaf.path === path,
-	);
+	// Focusing is a leaf-level action, so it applies to every open tab —
+	// including 1.14 external files, whose `isVaultFile` is false. Requiring a
+	// vault file here is what made a click in the "Pinned" or "External"
+	// section do nothing at all.
+	const candidates = leaves.filter((leaf) => !leaf.inSidebar && leaf.path === path);
 	if (candidates.length === 0) return { kind: 'open' };
 
 	const local = candidates.find((leaf) => leaf.windowId === windowId);
