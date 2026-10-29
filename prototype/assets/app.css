@@ -29,8 +29,8 @@ svg.i14 { width: 14px; height: 14px; flex: none; display: block; }
 svg.i12 { width: 12px; height: 12px; flex: none; display: block; }
 
 /* ---------- 双语（F8） ---------- */
-body.lang-zh .le { display: none !important; }
-body.lang-en .lz { display: none !important; }
+body.lang-zh .le { display: none; }
+body.lang-en .lz { display: none; }
 
 /* ---------- 演示工具条（非产品 UI） ---------- */
 .demo-bar {
@@ -528,7 +528,7 @@ body.color-off .tdot, body.color-off .gchip, body.color-off .pindot { display: n
 }
 .set-note.warn { border-left: 3px solid var(--g-yellow); }
 .set-note code {
-  font-family: ui-monospace, Consolas, monospace; font-size: 11.5px;
+  font-family: Consolas, "Courier New", monospace; font-size: 11.5px;
   background: var(--bg-active); border-radius: 4px; padding: 1px 5px;
 }
 .sponsor { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--accent); }
