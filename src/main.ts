@@ -65,9 +65,11 @@ export default class TabTrayPlugin extends Plugin {
 	}
 
 	override onunload(): void {
-		// Detach our views first so Svelte unmounts and every subscription is
-		// released before the layers they point at go away.
-		this.app.workspace.detachLeavesOfType(VIEW_TYPE_GROUPS);
+		// The sidebar leaf is deliberately left in place. Obsidian tears the
+		// view down itself when the plugin unloads, and `GroupsView.onClose()`
+		// is what unmounts the Svelte tree; detaching here would additionally
+		// drop the leaf back to its default location, undoing a placement the
+		// user chose on purpose.
 
 		// Best effort only: F5 never relies on the exit path for correctness.
 		void this.#persist?.flush();
