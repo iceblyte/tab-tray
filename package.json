@@ -33,6 +33,6 @@
 		"obsidian": "^1.14.4",
 		"svelte": "^5.57.2",
 		"typescript": "^5.9.3",
-		"vitest": "^4.1.12"
+		"vitest": "^5.0.5"
 	}
 }
