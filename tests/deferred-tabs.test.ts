@@ -80,6 +80,99 @@ function fakeApp(leaves: WorkspaceLeaf[], vaultPaths: string[]): App {
 	} as unknown as App;
 }
 
+describe('a view that is being rebuilt', () => {
+	interface Rebuildable {
+		leaf: WorkspaceLeaf;
+		/** The frame Obsidian swaps the view: same type, no file yet. */
+		blankView(): void;
+		/** The tab genuinely became an empty tab. */
+		becomeEmpty(): void;
+		/** The tab was reused for a view that holds no file. */
+		becomeGraph(): void;
+	}
+
+	function rebuildableLeaf(path: string): Rebuildable {
+		const containerEl = {
+			ownerDocument: { defaultView: windowRef },
+			closest: () => null,
+		} as unknown as HTMLElement;
+
+		let type = 'markdown';
+		let saved: string | null = path;
+
+		const leaf = {
+			view: Object.assign(new FileViewClass(), { file: { path }, containerEl }),
+			parent: {},
+			getViewState: () => ({
+				type,
+				pinned: false,
+				state: saved === null ? {} : { file: saved },
+			}),
+		} as unknown as WorkspaceLeaf;
+
+		const swapView = (): void => {
+			(leaf as unknown as { view: unknown }).view = {
+				getViewType: () => type,
+				containerEl,
+			};
+		};
+
+		return {
+			leaf,
+			blankView() {
+				swapView();
+				saved = null;
+			},
+			becomeEmpty() {
+				type = 'empty';
+				saved = null;
+				swapView();
+			},
+			becomeGraph() {
+				type = 'graph';
+				saved = null;
+				swapView();
+			},
+		};
+	}
+
+	it('keeps the row instead of collapsing the list for a frame', () => {
+		const handle = rebuildableLeaf('notes/a.md');
+		const tracker = new PinTracker(fakeApp([handle.leaf], ['notes/a.md']));
+		tracker.rescan();
+		expect(listOpenTabs(tracker.snapshot.leaves, () => null)).toHaveLength(1);
+
+		handle.blankView();
+		tracker.rescan();
+
+		const tabs = listOpenTabs(tracker.snapshot.leaves, () => null);
+		expect(tabs).toHaveLength(1);
+		expect(tabs[0]?.path).toBe('notes/a.md');
+	});
+
+	it('drops the row once the tab is really empty', () => {
+		const handle = rebuildableLeaf('notes/a.md');
+		const tracker = new PinTracker(fakeApp([handle.leaf], ['notes/a.md']));
+		tracker.rescan();
+
+		handle.becomeEmpty();
+		tracker.rescan();
+
+		expect(listOpenTabs(tracker.snapshot.leaves, () => null)).toHaveLength(0);
+	});
+
+	it('drops the row when the tab is reused for a file-less view', () => {
+		const handle = rebuildableLeaf('notes/a.md');
+		const tracker = new PinTracker(fakeApp([handle.leaf], ['notes/a.md']));
+		tracker.rescan();
+
+		handle.becomeGraph();
+		tracker.rescan();
+
+		expect(listOpenTabs(tracker.snapshot.leaves, () => null)).toHaveLength(0);
+	});
+});
+
 describe('deferred tabs after a restart', () => {
 	it('still reports a path, a vault file and the pinned flag', () => {
 		const leaves = [

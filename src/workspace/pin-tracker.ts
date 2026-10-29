@@ -31,6 +31,8 @@ export class PinTracker {
 	readonly #leafEvents = new Map<WorkspaceLeaf, EventRef>();
 	readonly #pinListeners = new Set<(path: string, pinned: boolean) => void>();
 	#leafIndex = new Map<string, WorkspaceLeaf>();
+	/** Last readable `{ path, type }` per leaf, used while a view is rebuilt. */
+	readonly #known = new Map<string, { path: string; type: string }>();
 
 	#snapshot: WorkspaceSnapshot = { leaves: [], revision: 0 };
 	#signature = '';
@@ -139,6 +141,7 @@ export class PinTracker {
 				// Leaf already gone; nothing to detach.
 			}
 			this.#leafEvents.delete(leaf);
+			this.#known.delete(this.#idForLeaf(leaf));
 		}
 
 		this.#leafIndex = leafIndex;
@@ -169,6 +172,7 @@ export class PinTracker {
 			}
 		}
 		this.#leafEvents.clear();
+		this.#known.clear();
 		this.#listeners.clear();
 		this.#pinListeners.clear();
 	}
@@ -198,12 +202,23 @@ export class PinTracker {
 		const view = leaf.view;
 		if (!view) return null;
 
+		const leafId = this.#idForLeaf(leaf);
 		const state = leafState(leaf);
+		const type = leafViewType(leaf, state);
+		const live = leafPath(leaf, state);
 
-		// A restored background tab has a `DeferredView`, not a `FileView`, so
-		// `view.file` is null for it. Reading the leaf's own state is what keeps
-		// a restart from looking like "every tab is closed".
-		const path = leafPath(leaf, state);
+		// Showing a deferred tab replaces its view for a moment, and for that
+		// frame the file cannot be read. Publishing that frame drops the row out
+		// of the sidebar's list, which reads as the list collapsing and popping
+		// back. The previous path stands in while the view type is unchanged; a
+		// tab that really became an empty tab or a graph view keeps nothing.
+		const known = this.#known.get(leafId);
+		const unchanged = known !== undefined && (state === null || type === known.type);
+		const path = live ?? (unchanged ? (known?.path ?? null) : null);
+
+		if (live !== null) this.#known.set(leafId, { path: live, type });
+		else if (path === null) this.#known.delete(leafId);
+
 		const file = path === null ? null : this.#app.vault.getAbstractFileByPath(path);
 
 		// 1.14 can open files outside the vault. Their path is a `file:` pseudo-
@@ -218,7 +233,6 @@ export class PinTracker {
 		const win = view.containerEl?.ownerDocument?.defaultView ?? null;
 		const windowId = win ? this.#idForWindow(win) : 'unknown';
 
-		const leafId = this.#idForLeaf(leaf);
 		const parent = leaf.parent;
 
 		// `pinned` is a `ViewState` field, not a leaf field — `getViewState()` is
