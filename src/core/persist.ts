@@ -1,5 +1,6 @@
 import { migrate } from './migrate';
 import type { ObsidianPort } from './port';
+import { clearHostTimer, type HostTimer, setHostTimer } from './timers';
 import { createEmptyData, type TrayData } from './types';
 
 /**
@@ -65,8 +66,8 @@ export class PersistenceEngine {
 	readonly #retryDelayMs: number;
 
 	#getData: (() => TrayData) | null = null;
-	#debounceTimer: ReturnType<typeof setTimeout> | null = null;
-	#retryTimer: ReturnType<typeof setTimeout> | null = null;
+	#debounceTimer: HostTimer | null = null;
+	#retryTimer: HostTimer | null = null;
 	#firstDirtyAt: number | null = null;
 	#queue: Promise<void> = Promise.resolve();
 	#readOnly = false;
@@ -223,12 +224,12 @@ export class PersistenceEngine {
 		const now = this.#port.now();
 		if (this.#firstDirtyAt === null) this.#firstDirtyAt = now;
 
-		if (this.#debounceTimer !== null) clearTimeout(this.#debounceTimer);
+		if (this.#debounceTimer !== null) clearHostTimer(this.#debounceTimer);
 
 		const elapsed = now - this.#firstDirtyAt;
 		const wait = Math.max(0, Math.min(this.#debounceMs, this.#maxWaitMs - elapsed));
 
-		this.#debounceTimer = setTimeout(() => {
+		this.#debounceTimer = setHostTimer(() => {
 			this.#debounceTimer = null;
 			this.#firstDirtyAt = null;
 			this.#enqueue();
@@ -238,7 +239,7 @@ export class PersistenceEngine {
 	/** Force a write now and wait for the queue to drain. */
 	async flush(): Promise<void> {
 		if (this.#debounceTimer !== null) {
-			clearTimeout(this.#debounceTimer);
+			clearHostTimer(this.#debounceTimer);
 			this.#debounceTimer = null;
 		}
 		this.#firstDirtyAt = null;
@@ -254,8 +255,8 @@ export class PersistenceEngine {
 
 	dispose(): void {
 		this.#disposed = true;
-		if (this.#debounceTimer !== null) clearTimeout(this.#debounceTimer);
-		if (this.#retryTimer !== null) clearTimeout(this.#retryTimer);
+		if (this.#debounceTimer !== null) clearHostTimer(this.#debounceTimer);
+		if (this.#retryTimer !== null) clearHostTimer(this.#retryTimer);
 		this.#debounceTimer = null;
 		this.#retryTimer = null;
 	}
@@ -273,7 +274,7 @@ export class PersistenceEngine {
 
 	#scheduleRetry(): void {
 		if (this.#disposed || this.#retryTimer !== null) return;
-		this.#retryTimer = setTimeout(() => {
+		this.#retryTimer = setHostTimer(() => {
 			this.#retryTimer = null;
 			this.markDirty();
 		}, this.#retryDelayMs);

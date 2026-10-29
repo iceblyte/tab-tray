@@ -16,7 +16,7 @@ export class FileFollow {
 	readonly #store: TrayStore;
 	readonly #missing = new Set<string>();
 	readonly #listeners = new Set<() => void>();
-	#scanTimer: ReturnType<typeof setTimeout> | null = null;
+	#scanTimer: number | null = null;
 
 	constructor(app: App, store: TrayStore) {
 		this.#app = app;
@@ -42,7 +42,7 @@ export class FileFollow {
 
 		// M5b: changes that happened while Obsidian was closed are caught by one
 		// lazy pass, deliberately after startup so it never blocks the UI.
-		this.#scanTimer = setTimeout(() => {
+		this.#scanTimer = window.setTimeout(() => {
 			this.#scanTimer = null;
 			this.scan();
 		}, 1500);
@@ -74,7 +74,7 @@ export class FileFollow {
 	}
 
 	dispose(): void {
-		if (this.#scanTimer !== null) clearTimeout(this.#scanTimer);
+		if (this.#scanTimer !== null) window.clearTimeout(this.#scanTimer);
 		this.#scanTimer = null;
 		this.#listeners.clear();
 	}

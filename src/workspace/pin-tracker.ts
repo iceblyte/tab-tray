@@ -35,7 +35,7 @@ export class PinTracker {
 	#signature = '';
 	#revision = 0;
 	#counter = 0;
-	#timer: ReturnType<typeof setTimeout> | null = null;
+	#timer: number | null = null;
 	#lastActiveEditorLeafId: string | null = null;
 
 	constructor(app: App) {
@@ -60,8 +60,8 @@ export class PinTracker {
 	}
 
 	schedule(delay = SCAN_DEBOUNCE_MS): void {
-		if (this.#timer !== null) clearTimeout(this.#timer);
-		this.#timer = setTimeout(() => {
+		if (this.#timer !== null) window.clearTimeout(this.#timer);
+		this.#timer = window.setTimeout(() => {
 			this.#timer = null;
 			this.rescan();
 		}, delay);
@@ -158,7 +158,7 @@ export class PinTracker {
 	}
 
 	dispose(): void {
-		if (this.#timer !== null) clearTimeout(this.#timer);
+		if (this.#timer !== null) window.clearTimeout(this.#timer);
 		this.#timer = null;
 		for (const ref of this.#leafEvents.values()) {
 			try {
