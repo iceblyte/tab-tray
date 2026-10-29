@@ -135,7 +135,7 @@ export const en = {
 		'Warn once when a group exceeds this member count, but never block adding.',
 	'settings.data.title': 'Data & persistence',
 	'settings.data.desc':
-		'Groups live in <code>.obsidian/plugins/tab-tray/data.json</code>: every change is written within 500 ms using an atomic replace, rotating a <code>data.json.bak</code> copy first. A damaged main file falls back to the backup; sync-conflict copies are arbitrated by modification time. Disabling or uninstalling the plugin <b>never deletes</b> your data.',
+		'Groups live in `.obsidian/plugins/tab-tray/data.json`: every change is written within 500 ms using an atomic replace, rotating a `data.json.bak` copy first. A damaged main file falls back to the backup; sync-conflict copies are arbitrated by modification time. Disabling or uninstalling the plugin **never deletes** your data.',
 	'settings.about.title': 'About',
 	'settings.about.name': 'Tab Tray v{version} · MIT License',
 	'settings.about.desc': 'Browser-style tab grouping and pinning for Obsidian desktop.',

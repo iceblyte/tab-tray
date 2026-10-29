@@ -883,18 +883,8 @@ body.theme-light {
 }
 
 /* ---------- settings ---------- */
-.tab-tray-settings-header h2 {
-	margin-bottom: 2px;
-}
-
-.tab-tray-settings-header p {
-	margin-top: 0;
-	color: var(--text-faint);
-	font-size: var(--font-ui-smaller);
-}
-
 .tab-tray-setting-note {
-	margin: 8px 0 16px;
+	margin: 6px 0 0;
 	padding: 11px 14px;
 	border: 1px solid var(--background-modifier-border);
 	border-radius: 8px;
@@ -915,15 +905,6 @@ body.theme-light {
 	background: var(--background-modifier-active-hover);
 	border-radius: 4px;
 	padding: 1px 5px;
-}
-
-.tab-tray-setting-degraded .setting-item-control {
-	opacity: 0.45;
-}
-
-.tab-tray-soft-limit {
-	width: 76px;
-	text-align: center;
 }
 
 .tab-tray-sponsor {

@@ -117,7 +117,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'settings.softLimit.desc': '单个分组的成员数超过该值时提示一次，但不阻止添加。',
 	'settings.data.title': '数据与持久化',
 	'settings.data.desc':
-		'分组数据保存于 <code>.obsidian/plugins/tab-tray/data.json</code>：每次变更 500ms 内防抖原子写盘，并先轮换 <code>data.json.bak</code> 备份；主文件损坏时自动回退备份；检测到同步冲突副本时按修改时间加载最新可解析版本。卸载或禁用插件<b>不会删除</b>数据文件。',
+		'分组数据保存于 `.obsidian/plugins/tab-tray/data.json`：每次变更 500ms 内防抖原子写盘，并先轮换 `data.json.bak` 备份；主文件损坏时自动回退备份；检测到同步冲突副本时按修改时间加载最新可解析版本。卸载或禁用插件**不会删除**数据文件。',
 	'settings.about.title': '关于',
 	'settings.about.name': 'Tab Tray v{version} · MIT License',
 	'settings.about.desc': 'Obsidian 桌面端标签分组与固定收纳。',
