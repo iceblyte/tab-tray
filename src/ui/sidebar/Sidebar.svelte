@@ -678,7 +678,7 @@
 						</span>
 					</div>
 
-					{#if !isFolded(section.id)}
+					{#if !isFolded(section.id) && section.entries.length > 0}
 						<div class="members">
 							{#each section.entries as entry (entry.path)}
 								{@render tabRow(entry)}
