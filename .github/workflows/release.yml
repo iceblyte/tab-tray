@@ -69,8 +69,20 @@ jobs:
         run: |
           set -euo pipefail
 
+          # The changelog section for this tag is the release body, so the
+          # listing and the repository never tell two different stories.
+          notes="$RUNNER_TEMP/notes.md"
+          awk -v tag="$TAG" '
+            $0 ~ "^## \\[" tag "\\]" { capture = 1; next }
+            capture && /^## \[/ { exit }
+            capture && /^\[[^]]+\]: / { exit }
+            capture { print }
+          ' CHANGELOG.md > "$notes"
+
           if gh release view "$TAG" > /dev/null 2>&1; then
             echo "Release $TAG exists; refreshing its assets."
+          elif [ -s "$notes" ]; then
+            gh release create "$TAG" --verify-tag --title "$TAG" --notes-file "$notes"
           else
             gh release create "$TAG" --verify-tag --title "$TAG" --generate-notes
           fi
