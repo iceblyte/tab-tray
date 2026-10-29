@@ -1,24 +1,18 @@
 /**
- * Timer access for the host-agnostic core (D9).
+ * Timer access for the core layer.
  *
- * `window.setTimeout` is the supported form: a timer must belong to the main
- * window, or a popout window can be handed a callback bound to another one.
- * Plain Node — the unit-test runtime — has no `window`, so the global is the
- * fallback there. The reference is read at call time, which is what lets the
- * test suite swap in fake timers.
+ * `window.setTimeout` is the supported form: the timer then belongs to the main
+ * window, which is what keeps a popout from being handed a callback bound to
+ * another one. `window` is always present in the host, so there is no branch
+ * here; the unit tests alias it to the Node global (see `tests/setup.ts`).
  */
 
 export type HostTimer = number;
 
 export function setHostTimer(handler: () => void, delay: number): HostTimer {
-	if (typeof window !== 'undefined') return window.setTimeout(handler, delay);
-	return globalThis.setTimeout(handler, delay) as unknown as HostTimer;
+	return window.setTimeout(handler, delay);
 }
 
 export function clearHostTimer(timer: HostTimer): void {
-	if (typeof window !== 'undefined') {
-		window.clearTimeout(timer);
-		return;
-	}
-	globalThis.clearTimeout(timer);
+	window.clearTimeout(timer);
 }
