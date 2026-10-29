@@ -1,6 +1,6 @@
 {
 	"name": "tab-tray",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "Browser-style tab grouping and pinning for Obsidian desktop",
 	"main": "main.js",
 	"scripts": {

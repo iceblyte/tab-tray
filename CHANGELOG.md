@@ -73,5 +73,26 @@ Community-plugin review fixes, plus three restart regressions found by hand.
 - vitest 4.1.12 → 5.0.5. npm 10 cannot resolve 4.1.12 at all, which is what
   left the lockfile stale and the esbuild platform package missing.
 
+## [1.0.2] - 2026-10-29
+
+Second round of community-plugin review fixes.
+
+### Changed
+
+- Release assets are built and attested by GitHub Actions, so the `main.js`
+  and `styles.css` a user installs can be traced back to the commit they were
+  built from. The manual zip is gone: Obsidian only downloads `main.js`,
+  `manifest.json` and `styles.css`, and anything else is an unsupported file.
+
+### Fixed
+
+- Timers go through `window.setTimeout` / `window.clearTimeout` with no
+  `globalThis` fallback, which is what keeps a popout window from running a
+  callback bound to another one.
+- `activeLeaf` is deprecated and is replaced by `getMostRecentLeaf()`. The
+  panel now keeps the last read tab highlighted instead of dropping the
+  highlight whenever the panel itself has focus.
+
+[1.0.2]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.2
 [1.0.1]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.1
 [1.0.0]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.0
