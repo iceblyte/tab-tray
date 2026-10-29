@@ -713,12 +713,12 @@ body.theme-light {
 
 /* ---------- group colouring (v1, user-confirmed) ----------
    The dot is a pseudo-element, so colouring inserts no nodes either. */
-/* A macOS-style soft tint plus a coloured capsule ring. The tint is handed to
-   the host as its own tab variables rather than painted over it: Obsidian draws
-   the tab body, the outline and the two curved bottom corners from
-   `--tab-background*` / `--tab-outline-color`, so overriding the variables
-   keeps all three in sync. Painting the corners ourselves with a big-spread
-   box-shadow on `::before` / `::after` made them repaint a frame late. */
+/* A macOS-style soft tint plus a coloured ring. The tint is handed to the host
+   as its own tab variables rather than painted over it, because the host draws
+   an active tab from three places at once: the body (`--tab-background-active`),
+   the outline (`--tab-outline-color`) and two quarter-disc "inverse corners" it
+   paints on `::before` / `::after` outside the body, sized from `--tab-curve`.
+   Overriding the variables keeps all three identical by construction. */
 .workspace-split.mod-root
 	.workspace-tab-header-container
 	.workspace-tab-header.tab-tray-grouped {
@@ -732,7 +732,25 @@ body.theme-light {
 		var(--tt-group-color) 16%,
 		var(--background-secondary)
 	);
-	border-radius: 7px;
+	/* The host paints the hover corner discs with this outline colour; matching
+	   it keeps the ring unbroken where the discs meet the tab. */
+	--tab-outline-color-hover: color-mix(
+		in srgb,
+		var(--tt-group-color) 55%,
+		var(--text-normal)
+	);
+}
+
+/* At rest a tab is a plain rounded block, so the tint can be painted directly.
+   Two rules are load-bearing here:
+   - no `border-radius`: the host's is `--tab-radius-active`, i.e.
+     `10px 10px 0 0`. Rounding the bottom corners ourselves cuts a notch into
+     the square corner the host's disc is drawn against.
+   - never paint an active tab: its body must keep `--tab-background-active`,
+     the same value the discs use, or the corners read as separate blocks. */
+.workspace-split.mod-root
+	.workspace-tab-header-container
+	.workspace-tab-header.tab-tray-grouped:not(.is-active) {
 	background-color: var(--tab-background);
 	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 55%, var(--text-normal));
 }
