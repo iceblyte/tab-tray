@@ -98,9 +98,25 @@ export class PinnedRow {
 						? (pathColors?.get(path) ?? null)
 						: (colors?.get(title) ?? null);
 
-				header.classList.toggle(GROUPED_CLASS, color !== null);
-				if (color) header.style.setProperty(GROUP_VAR, `var(--tt-g-${color})`);
-				else header.style.removeProperty(GROUP_VAR);
+				if (external) {
+					header.classList.remove(GROUPED_CLASS);
+					header.style.removeProperty(GROUP_VAR);
+					continue;
+				}
+
+				// "No colour" is only conclusive when we know which file this tab
+				// is. A header that is not paired with a leaf yet and has no title
+				// match is a transient state while the strip re-renders; clearing
+				// there is what made the tint (and the corners it paints) blink
+				// back to the native look for a frame.
+				const known = !colorEnabled || path !== null || colors?.has(title) === true;
+				if (color) {
+					header.classList.add(GROUPED_CLASS);
+					header.style.setProperty(GROUP_VAR, `var(--tt-g-${color})`);
+				} else if (known) {
+					header.classList.remove(GROUPED_CLASS);
+					header.style.removeProperty(GROUP_VAR);
+				}
 			}
 		}
 	}

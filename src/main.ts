@@ -122,6 +122,14 @@ export default class TabTrayPlugin extends Plugin {
 			i18n: this.#i18n,
 		});
 		this.#pinnedRow = new PinnedRow(this.app, this.#controller);
+
+		// The tracker rescans on a short debounce, which is long enough for a
+		// freshly activated tab to paint one frame without its tint. Re-running
+		// the pass on the event itself keeps the tab body and its corners in
+		// the same frame as the selection.
+		this.registerEvent(
+			this.app.workspace.on('active-leaf-change', () => this.#pinnedRow.refresh()),
+		);
 		this.#commands = new CommandRegistry(this, this.#controller);
 
 		// D7: settings and groups share one write path, so `saveData` is never used.

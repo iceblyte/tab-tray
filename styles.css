@@ -713,29 +713,34 @@ body.theme-light {
 
 /* ---------- group colouring (v1, user-confirmed) ----------
    The dot is a pseudo-element, so colouring inserts no nodes either. */
-/* A macOS-style soft tint plus a coloured capsule ring. The inactive tab keeps
-   enough tint to read at a glance; the active tab gets a stronger tint and a
-   group-coloured outline so selection cannot wash the colour out. */
+/* A macOS-style soft tint plus a coloured capsule ring. The tint is handed to
+   the host as its own tab variables rather than painted over it: Obsidian draws
+   the tab body, the outline and the two curved bottom corners from
+   `--tab-background*` / `--tab-outline-color`, so overriding the variables
+   keeps all three in sync. Painting the corners ourselves with a big-spread
+   box-shadow on `::before` / `::after` made them repaint a frame late. */
 .workspace-split.mod-root
 	.workspace-tab-header-container
 	.workspace-tab-header.tab-tray-grouped {
-	border-radius: 7px;
-	background-color: color-mix(
+	--tab-background: color-mix(
 		in srgb,
 		var(--tt-group-color) 10%,
-		var(--tab-background, var(--background-secondary))
+		var(--background-secondary)
 	);
+	--tab-background-hover: color-mix(
+		in srgb,
+		var(--tt-group-color) 16%,
+		var(--background-secondary)
+	);
+	border-radius: 7px;
+	background-color: var(--tab-background);
 	box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 55%, var(--text-normal));
 }
 
 .workspace-split.mod-root
 	.workspace-tab-header-container
 	.workspace-tab-header.tab-tray-grouped:not(.is-active):hover {
-	background-color: color-mix(
-		in srgb,
-		var(--tt-group-color) 16%,
-		var(--tab-background, var(--background-secondary))
-	);
+	background-color: var(--tab-background-hover);
 }
 
 .workspace-tab-header.tab-tray-grouped .workspace-tab-header-inner::before {
@@ -749,38 +754,17 @@ body.theme-light {
 	box-shadow: 0 0 0 1px color-mix(in srgb, var(--tt-group-color) 35%, transparent);
 }
 
-/* Higher specificity than Obsidian's `.workspace-tab-header-container
-   .workspace-tab-header.is-active`, so the tint survives selection. */
+/* Active: only the two colours change. Everything visible — body, ring and
+   corners — is then drawn by the host's own rules, in one paint. */
 .workspace-split.mod-root
 	.workspace-tab-header-container
 	.workspace-tab-header.tab-tray-grouped.is-active {
-	background-color: color-mix(
+	--tab-background-active: color-mix(
 		in srgb,
 		var(--tt-group-color) 24%,
-		var(--tab-background-active, var(--background-primary))
+		var(--background-primary)
 	);
-	box-shadow: 0 0 0 var(--tab-outline-width, 1px)
-		color-mix(in srgb, var(--tt-group-color) 80%, var(--text-normal));
-}
-
-/* Obsidian draws the tab's curved corners with these pseudo-elements using the
-   active background colour. Without this override the centre is tinted but the
-   corners stay white, which reads as a broken active state. */
-.workspace-split.mod-root
-	.workspace-tab-header-container
-	.workspace-tab-header.tab-tray-grouped.is-active::before,
-.workspace-split.mod-root
-	.workspace-tab-header-container
-	.workspace-tab-header.tab-tray-grouped.is-active::after {
-	box-shadow:
-		inset 0 0 0 var(--tab-outline-width, 1px)
-			color-mix(in srgb, var(--tt-group-color) 80%, var(--text-normal)),
-		0 0 0 calc(var(--tab-curve, 0px) * 4)
-			color-mix(
-				in srgb,
-				var(--tt-group-color) 24%,
-				var(--tab-background-active, var(--background-primary))
-			);
+	--tab-outline-color: color-mix(in srgb, var(--tt-group-color) 80%, var(--text-normal));
 }
 
 .workspace-tab-header.tab-tray-pinned-compact.tab-tray-grouped::after {
