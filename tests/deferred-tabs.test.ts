@@ -72,7 +72,7 @@ function fakeApp(leaves: WorkspaceLeaf[], vaultPaths: string[]): App {
 	return {
 		vault: { getAbstractFileByPath: (path: string) => files.get(path) ?? null },
 		workspace: {
-			activeLeaf: leaves[0] ?? null,
+			getMostRecentLeaf: () => leaves[0] ?? null,
 			iterateAllLeaves: (callback: (leaf: WorkspaceLeaf) => void) => {
 				for (const leaf of leaves) callback(leaf);
 			},

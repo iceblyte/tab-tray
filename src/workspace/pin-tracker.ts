@@ -119,7 +119,10 @@ export class PinTracker {
 		const leaves: LeafSnapshot[] = [];
 		const seen = new Set<WorkspaceLeaf>();
 		const leafIndex = new Map<string, WorkspaceLeaf>();
-		const activeLeaf = this.#app.workspace.activeLeaf;
+		// `activeLeaf` is deprecated. The most recent leaf of the root split and
+		// the popouts is the tab the user is actually reading — and unlike
+		// `activeLeaf` it stays put while a sidebar view has focus.
+		const activeLeaf = this.#app.workspace.getMostRecentLeaf();
 
 		this.#app.workspace.iterateAllLeaves((leaf) => {
 			seen.add(leaf);
