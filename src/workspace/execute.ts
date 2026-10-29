@@ -214,6 +214,7 @@ export class WorkspaceExecutor {
 
 		try {
 			await this.#app.workspace.revealLeaf(leaf);
+			this.#clearRevealFlash(leaf);
 			this.#tracker.rescan();
 			return true;
 		} catch {
@@ -270,6 +271,29 @@ export class WorkspaceExecutor {
 		} catch {
 			// ignore
 		}
+	}
+
+	/**
+	 * `revealLeaf` flashes the header it switches to: `is-flashing` for 750 ms,
+	 * and that class paints `--highlight-background` — a bright yellow — over
+	 * the whole tab, plus a different corner radius. It is a "look here" cue for
+	 * link navigation; from our own list the click already says where to look,
+	 * so it only reads as a glitch.
+	 *
+	 * The class is added synchronously inside `revealLeaf` (right after the tab
+	 * switch), so stripping it once the await returns lands before the next
+	 * paint. The extra frame covers a leaf whose split had to be expanded
+	 * first, which can land the class a moment later.
+	 */
+	#clearRevealFlash(leaf: WorkspaceLeaf): void {
+		// `tabHeaderEl` is real but missing from the d.ts, like the other places
+		// that pair a leaf with its header.
+		const header = (leaf as WorkspaceLeaf & { tabHeaderEl?: HTMLElement }).tabHeaderEl;
+		if (!header) return;
+		header.removeClass('is-flashing');
+		header.ownerDocument.defaultView?.requestAnimationFrame(() => {
+			header.removeClass('is-flashing');
+		});
 	}
 
 	/** Live lookup: the workspace, not the debounced snapshot, decides. */
