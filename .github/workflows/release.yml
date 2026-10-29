@@ -1,0 +1,88 @@
+name: Release
+
+# Obsidian installs exactly three files from a release: main.js, manifest.json
+# and styles.css. This workflow builds them from the tagged source, attests
+# their provenance, and publishes them — so the assets users download can be
+# traced back to this repository and this commit.
+on:
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+  artifact-metadata: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Check the manifest matches the tag
+        env:
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          node -e '
+            const version = require("./manifest.json").version;
+            if (version !== process.env.TAG) {
+              console.error(`manifest.json is ${version}, tag is ${process.env.TAG}`);
+              process.exit(1);
+            }
+          '
+
+      - name: Build
+        run: npm run build
+
+      - name: Attest the release assets
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "Release $TAG exists; refreshing its assets."
+          else
+            gh release create "$TAG" --verify-tag --title "$TAG" --generate-notes
+          fi
+
+          # Anything else in the release is reported as an unsupported file and
+          # is never downloaded, so it is removed rather than left to confuse.
+          gh release view "$TAG" --json assets --jq '.assets[].name' |
+            while IFS= read -r asset; do
+              case "$asset" in
+                main.js | manifest.json | styles.css) ;;
+                *) gh release delete-asset "$TAG" "$asset" --yes ;;
+              esac
+            done
+
+          gh release upload "$TAG" main.js manifest.json styles.css --clobber
