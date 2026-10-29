@@ -59,8 +59,9 @@ glance. Create a group, then add files by right-clicking them in the file
 explorer or on a tab header. A tab that is already in a group offers **Remove
 from "…"** in the same menu.
 
-Clicking a group row folds or unfolds that list, and so does the chevron in
-front of it. Opening and closing a group's tabs is deliberately a button — the
+Clicking a member focuses its tab if it is already open and opens it in a new
+tab otherwise — it never replaces what you are reading. Clicking a group row
+folds or unfolds that list, and so does the chevron in front of it. Opening and closing a group's tabs is deliberately a button — the
 two chevrons that appear on hover — because a row click used to do both and
 aiming at the twist often closed tabs instead. Holding Ctrl/Cmd while expanding
 appends instead of replacing.
