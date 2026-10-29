@@ -1,5 +1,6 @@
 import { type App, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { Group } from '../core/types';
+import { leafPath } from './leaf-file';
 import type { PinTracker } from './pin-tracker';
 import {
 	type ExpandMode,
@@ -304,9 +305,11 @@ export class WorkspaceExecutor {
 		this.#app.workspace.iterateAllLeaves((leaf) => {
 			// Duck-typed on purpose: `FileView` is the common case, but the
 			// check only needs "this tab holds this file", and a stricter
-			// instanceof is what silently skipped external tabs before.
-			const file = (leaf.view as { file?: { path?: string } } | undefined)?.file;
-			if (file?.path === path) matches.push(leaf);
+			// instanceof is what silently skipped external tabs before. A
+			// deferred background tab has no `view.file` at all, so the leaf's
+			// own state is consulted too — without it, a click right after a
+			// restart opened a second copy of an already open file.
+			if (leafPath(leaf) === path) matches.push(leaf);
 		});
 		if (matches.length === 0) return null;
 

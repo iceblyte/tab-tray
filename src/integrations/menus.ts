@@ -1,13 +1,6 @@
-import {
-	type App,
-	FileView,
-	Menu,
-	type MenuItem,
-	type Plugin,
-	TFile,
-	type WorkspaceLeaf,
-} from 'obsidian';
+import { type App, Menu, type MenuItem, type Plugin, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { TrayController } from '../controller';
+import { leafPath } from '../workspace/leaf-file';
 
 /**
  * F3-1 / F3-2 / F3-6 — the "add to group" context-menu entry.
@@ -189,8 +182,7 @@ function pathForHeader(app: App, header: HTMLElement): string | null {
 	});
 
 	if (!match) return null;
-	const view = (match as WorkspaceLeaf).view;
-	return view instanceof FileView ? (view.file?.path ?? null) : null;
+	return leafPath(match);
 }
 
 function hasItem(menu: Menu, title: string): boolean {

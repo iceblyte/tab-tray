@@ -1,5 +1,6 @@
-import { type App, FileView, type WorkspaceLeaf } from 'obsidian';
+import type { App, WorkspaceLeaf } from 'obsidian';
 import type { TrayController } from '../controller';
+import { leafPath } from '../workspace/leaf-file';
 import { buildColorIndex, buildColorIndexByPath } from './tab-color-index';
 
 /**
@@ -127,10 +128,12 @@ export class PinnedRow {
 
 		this.#app.workspace.iterateAllLeaves((leaf) => {
 			const header = (leaf as WorkspaceLeaf & { tabHeaderEl?: HTMLElement }).tabHeaderEl;
-			const view = leaf.view;
-			if (header && view instanceof FileView && view.file) {
-				map.set(header, view.file.path);
-			}
+			if (!header) return;
+			// A deferred tab has no `view.file`; its view state still names the
+			// file, which is what keeps a restored tab's colour correct before
+			// it has ever been shown.
+			const path = leafPath(leaf);
+			if (path !== null) map.set(header, path);
 		});
 
 		return map;
