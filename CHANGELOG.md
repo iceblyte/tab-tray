@@ -44,4 +44,34 @@ First public release. Desktop only, Obsidian 1.14.0 or newer.
   groups; their order is fixed rather than persisted.
 - Folding a section is session state and is not written to `data.json`.
 
+## [1.0.1] - 2026-10-29
+
+Community-plugin review fixes, plus three restart regressions found by hand.
+
+### Fixed
+
+- **Restored tabs were invisible to the sidebar** — Obsidian defers every
+  background tab after a restart, so its view carries no file and the open-tab
+  sections came up empty until each tab had been clicked once. The leaf's own
+  view state now supplies the path.
+- **A click opened a duplicate tab** — the same missing path made "focus it if
+  it is already open" fall through to opening a second copy of the file.
+- **The first click collapsed a section** — showing a deferred tab leaves one
+  frame without a readable path, so the row dropped out of the list and came
+  back a scan later. The last readable path now stands in while the view type
+  is unchanged.
+- **The settings page is declarative** — it appears in Obsidian's settings
+  search on 1.13 and later, and refreshes through `update()`.
+- Group colours and the tab-header "add to group" entry now resolve deferred
+  tabs too, so both work on a restored tab before it has been shown.
+- Timers go through `window.*` for popout compatibility, the sidebar leaf is no
+  longer detached on unload, and the storage note is built node by node instead
+  of through `innerHTML`.
+
+### Changed
+
+- vitest 4.1.12 → 5.0.5. npm 10 cannot resolve 4.1.12 at all, which is what
+  left the lockfile stale and the esbuild platform package missing.
+
+[1.0.1]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.1
 [1.0.0]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.0

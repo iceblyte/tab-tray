@@ -1,7 +1,7 @@
 {
 	"id": "tab-tray",
 	"name": "Tab Tray",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "1.14.0",
 	"description": "Browser-style tab groups you can open and collapse in one click, plus a compact pinned row. Built so groups never disappear after a restart.",
 	"author": "iceblyte",
