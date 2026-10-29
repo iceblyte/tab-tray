@@ -1,4 +1,4 @@
-import { type App, FileView, TFile, type WorkspaceLeaf } from 'obsidian';
+import { type App, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { Group } from '../core/types';
 import type { PinTracker } from './pin-tracker';
 import {
@@ -179,27 +179,18 @@ export class WorkspaceExecutor {
 		return closed;
 	}
 
-	/** F1 / F9 click semantics: focus when already open, otherwise open. */
+	/** F1 / F9 click semantics: focus when already open, otherwise open anew. */
 	async openMember(path: string, options: { newTab?: boolean } = {}): Promise<OpenResult> {
-		const windowId = this.currentWindowId();
-
-		if (!options.newTab) {
-			const plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
-			if (plan.kind === 'focus') {
-				const leaf = this.#tracker.leafById(plan.leafId);
-				if (leaf) {
-					await this.#app.workspace.revealLeaf(leaf);
-					this.#tracker.rescan();
-					return 'focused';
-				}
-			}
-		}
+		if (!options.newTab && (await this.focusPath(path))) return 'focused';
 
 		const file = this.#app.vault.getAbstractFileByPath(path);
 		if (!(file instanceof TFile)) return 'failed';
 
 		try {
-			const leaf = options.newTab ? this.#app.workspace.getLeaf('tab') : this.#targetLeaf();
+			// Always a new tab. Reusing the active leaf replaced whatever the
+			// user was reading — and when that tab happened to be pinned, the
+			// member ended up both pinned and grouped, which the model forbids.
+			const leaf = this.#app.workspace.getLeaf('tab');
 			await leaf.openFile(file, { active: true });
 			this.#tracker.rescan();
 			return 'opened';
@@ -211,18 +202,14 @@ export class WorkspaceExecutor {
 	/** F9: reveal a specific open tab, even in another window. */
 	async focusPath(path: string): Promise<boolean> {
 		const windowId = this.currentWindowId();
-		let plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
+		const plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
 
-		// The list can be one layout tick ahead of the tracker (a tab opened or
-		// pinned a moment ago). One rescan is cheap and turns a dead click into
-		// the expected jump.
-		if (plan.kind !== 'focus') {
-			this.#tracker.rescan();
-			plan = planOpenMember(path, windowId, this.#tracker.snapshot.leaves);
-		}
-		if (plan.kind !== 'focus') return false;
-
-		const leaf = this.#tracker.leafById(plan.leafId);
+		// The plan is the cheap path; the live lookup is the authority. The
+		// snapshot can lag a layout tick, and a leaf the tracker never indexed
+		// (an external file) has no entry at all — which is exactly why a click
+		// in the "External" section used to do nothing.
+		const planned = plan.kind === 'focus' ? this.#tracker.leafById(plan.leafId) : null;
+		const leaf = planned ?? this.#findLeafByPath(path);
 		if (!leaf) return false;
 
 		try {
@@ -285,15 +272,22 @@ export class WorkspaceExecutor {
 		}
 	}
 
-	#targetLeaf(): WorkspaceLeaf {
-		const active = this.#app.workspace.activeLeaf;
-		if (active && active.view instanceof FileView) return active;
+	/** Live lookup: the workspace, not the debounced snapshot, decides. */
+	#findLeafByPath(path: string): WorkspaceLeaf | null {
+		const win = currentWindow();
+		const matches: WorkspaceLeaf[] = [];
 
-		const lastId = this.#tracker.lastActiveEditorLeafId;
-		const last = lastId ? this.#tracker.leafById(lastId) : null;
-		if (last) return last;
+		this.#app.workspace.iterateAllLeaves((leaf) => {
+			// Duck-typed on purpose: `FileView` is the common case, but the
+			// check only needs "this tab holds this file", and a stricter
+			// instanceof is what silently skipped external tabs before.
+			const file = (leaf.view as { file?: { path?: string } } | undefined)?.file;
+			if (file?.path === path) matches.push(leaf);
+		});
+		if (matches.length === 0) return null;
 
-		return this.#app.workspace.getLeaf('tab');
+		const local = matches.find((leaf) => leaf.view.containerEl?.ownerDocument?.defaultView === win);
+		return local ?? matches[0] ?? null;
 	}
 
 	#detach(leafId: string): boolean {
