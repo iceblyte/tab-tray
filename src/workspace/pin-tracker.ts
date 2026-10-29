@@ -1,5 +1,6 @@
-import { type App, type EventRef, FileView, TFile, type WorkspaceLeaf } from 'obsidian';
+import { type App, type EventRef, TFile, type WorkspaceLeaf } from 'obsidian';
 import type { EventHost } from './host';
+import { leafPath, leafState, leafViewType } from './leaf-file';
 import { isExternalPath as isExternalPathString } from './paths';
 import type { LeafSnapshot } from './plan';
 
@@ -178,8 +179,10 @@ export class PinTracker {
 		if (this.#leafEvents.has(leaf)) return;
 		try {
 			const ref = leaf.on('pinned-change', (pinned: boolean) => {
-				const view = leaf.view;
-				const path = view instanceof FileView ? (view.file?.path ?? null) : null;
+				// A background tab is deferred, so `view.file` is undefined; the
+				// path has to come from the leaf itself or the "pinning removes
+				// group membership" rule silently stops firing after a restart.
+				const path = leafPath(leaf);
 				if (path) {
 					for (const listener of this.#pinListeners) listener(path, pinned);
 				}
@@ -195,18 +198,22 @@ export class PinTracker {
 		const view = leaf.view;
 		if (!view) return null;
 
-		const file = view instanceof FileView ? view.file : null;
-		const path = file?.path ?? null;
+		const state = leafState(leaf);
+
+		// A restored background tab has a `DeferredView`, not a `FileView`, so
+		// `view.file` is null for it. Reading the leaf's own state is what keeps
+		// a restart from looking like "every tab is closed".
+		const path = leafPath(leaf, state);
+		const file = path === null ? null : this.#app.vault.getAbstractFileByPath(path);
 
 		// 1.14 can open files outside the vault. Their path is a `file:` pseudo-
 		// path and `getAbstractFileByPath` returns them too, so the vault test
 		// alone would classify them as members.
 		const external =
-			(file !== null && isExternalFile(file)) ||
+			(file instanceof TFile && isExternalFile(file)) ||
 			isExternalHeader(leaf) ||
 			(path !== null && isExternalPathString(path));
-		const isVaultFile =
-			path !== null && !external && this.#app.vault.getAbstractFileByPath(path) instanceof TFile;
+		const isVaultFile = path !== null && !external && file instanceof TFile;
 
 		const win = view.containerEl?.ownerDocument?.defaultView ?? null;
 		const windowId = win ? this.#idForWindow(win) : 'unknown';
@@ -216,7 +223,7 @@ export class PinTracker {
 
 		// `pinned` is a `ViewState` field, not a leaf field — `getViewState()` is
 		// the public way to read it.
-		const pinned = leaf.getViewState().pinned === true;
+		const pinned = state?.pinned === true;
 
 		return {
 			leafId,
@@ -228,7 +235,7 @@ export class PinTracker {
 			paneId: parent ? this.#idForPane(parent) : 'unknown',
 			active: leaf === activeLeaf,
 			inSidebar: isInSidebar(view.containerEl),
-			isEmptyTab: view.getViewType() === 'empty',
+			isEmptyTab: leafViewType(leaf, state) === 'empty',
 		};
 	}
 

@@ -168,6 +168,10 @@ export default class TabTrayPlugin extends Plugin {
 		this.#controller.start();
 
 		this.app.workspace.onLayoutReady(() => {
+			// `start()` already scanned once, but that ran before the layout was
+			// guaranteed to be restored. Rescanning here is what makes the
+			// sidebar's open-tab sections correct on the very first paint.
+			this.#tracker.rescan();
 			this.#probeCompactPinnedRow();
 			this.#pinnedRow.start();
 		});
