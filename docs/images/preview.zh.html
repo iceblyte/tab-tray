@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tab Tray · preview</title>
+<link rel="stylesheet" href="../../prototype/assets/tokens.css">
+<link rel="stylesheet" href="../../prototype/assets/app.css">
+<link rel="stylesheet" href="../../styles.css">
+
+<style>
+  /* Obsidian theme variables the plugin reads, mapped onto the mock's tokens. */
+  body {
+    --background-primary: var(--bg-primary);
+    --background-secondary: var(--bg-secondary);
+    --background-modifier-border: var(--border);
+    --background-modifier-border-hover: var(--border-strong);
+    --background-modifier-hover: var(--bg-hover);
+    --background-modifier-active-hover: var(--bg-active);
+    --interactive-accent: var(--accent);
+    --text-on-accent: var(--on-accent);
+    --text-error: var(--error);
+    --color-red-rgb: 227, 93, 107;
+    --shadow-s: var(--shadow-pop);
+    --shadow-l: var(--shadow-win);
+  }
+  .sidebar.tab-tray-view { width: 300px; }
+</style>
+
+</head>
+<body class="theme-dark lang-zh"><div class="window">
+  <!-- 标题栏 -->
+  <div class="titlebar">
+    <div class="tb-title">Obsidian — My Vault</div>
+    <div class="tb-ctls">
+      <button class="tb-ctl"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg></button>
+      <button class="tb-ctl"><svg class="i12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="5" width="14" height="14" rx="1.5"/></svg></button>
+      <button class="tb-ctl close"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+  </div>
+
+  <div class="app">
+    <!-- Ribbon -->
+    <div class="ribbon">
+      <button class="rib-btn" title="快速切换"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></button>
+      <button class="rib-btn" title="命令面板"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></svg></button>
+      <button class="rib-btn" title="关系图谱"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 9 9-9 9-9-9z"/></svg></button>
+      <div class="rib-sep"></div>
+      <button class="rib-btn active" title="Tab Tray · 分组"><svg class="i18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></button>
+    </div>
+
+    <!-- 左侧边栏：Tab Tray 分组视图 -->
+    
+    <div class="sidebar tab-tray-view">
+      <div class="side-tabs">
+        <div class="stab"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>文件</div>
+        <div class="stab active"><svg class="i14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>分组</div>
+      </div>
+
+      <div class="tt-view">
+        <div class="view-head">
+          <span class="vh-title">Tab Tray</span>
+          <button class="vh-new"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>新建分组</button>
+        </div>
+
+        <div class="tt-tabs">
+          <div class="tm-tools">
+            <input class="tm-search" placeholder="搜索分组与标签…" readonly>
+            <button class="tm-collapse"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></span>一键收纳</button>
+          </div>
+
+          <div class="glist">
+        <div class="tsec" role="group">
+          <div class="tsec-head" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="tt-icon tsec-icon" style="--tt-icon-size:13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg></span>
+            <span class="tsec-name">已固定</span>
+            <span class="gcount has">2</span>
+          </div>
+          <div class="members">
+              <div class="member tentry" title="论文草稿.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">论文草稿.md</span><span class="tt-icon mpin" style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg></span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="周报-十月.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">周报-十月.md</span><span class="tt-icon mpin" style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/></svg></span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+          </div>
+        </div>
+        <div class="tsec" role="group">
+          <div class="tsec-head" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="gdot tt-dot-muted"></span>
+            <span class="tsec-name">未分组</span>
+            <span class="gcount has">3</span>
+          </div>
+          <div class="members">
+              <div class="member tentry active-row" title="灵感收集.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">灵感收集.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="文献综述.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">文献综述.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="会议记录.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">会议记录.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+          </div>
+        </div>
+        <div class="tsec" role="group">
+          <div class="tsec-head" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="gdot tt-dot-muted"></span>
+            <span class="tsec-name">库外</span>
+            <span class="gcount has">1</span>
+          </div>
+          <div class="members">
+              <div class="member tentry" title="预算.xlsx">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">预算.xlsx</span><span class="tflag">库外</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+          </div>
+        </div>
+            <div class="tsec-rule" role="separator"></div>
+        <div class="group gc-blue" role="group">
+          <div class="ghead" draggable="true" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="gdot"></span>
+            <span class="gname">研究</span>
+            <span class="gcount has">1/4</span>
+            <span class="gacts">
+              <button class="gact" title="expand"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></span></button>
+              <button class="gact" title="collapse"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></span></button>
+              <button class="gact" title="more"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></span></button>
+            </span>
+          </div>
+          <div class="members">
+              <div class="member tentry" title="数据整理.canvas">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg></span>
+                <span class="mname">数据整理.canvas</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="参考文献.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">参考文献.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="旧笔记.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">旧笔记.md</span><span class="mflag">丢失</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="第三章.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">第三章.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+          </div>
+        </div>
+        <div class="group gc-green" role="group">
+          <div class="ghead" draggable="true" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="gdot"></span>
+            <span class="gname">写作</span>
+            <span class="gcount has">1/3</span>
+            <span class="gacts">
+              <button class="gact" title="expand"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></span></button>
+              <button class="gact" title="collapse"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></span></button>
+              <button class="gact" title="more"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></span></button>
+            </span>
+          </div>
+          <div class="members">
+              <div class="member tentry" title="第一章.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">第一章.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="第二章.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">第二章.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+              <div class="member tentry" title="索引.md">
+                <span class="tt-icon micon" style="--tt-icon-size:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span>
+                <span class="mname">索引.md</span>
+                <button class="mx" title="close"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+              </div>
+          </div>
+        </div>
+        <div class="group gc-purple folded" role="group">
+          <div class="ghead" draggable="true" role="button" tabindex="0">
+            <button type="button" class="twist"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+            <span class="gdot"></span>
+            <span class="gname">归档</span>
+            <span class="gcount">0/6</span>
+            <span class="gacts">
+              <button class="gact" title="expand"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 17 5-5-5-5"/><path d="m14 17 5-5-5-5"/></svg></span></button>
+              <button class="gact" title="collapse"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m17 7-5 5 5 5"/><path d="m10 7-5 5 5 5"/></svg></span></button>
+              <button class="gact" title="more"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></span></button>
+            </span>
+          </div>
+          
+        </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="main" style="display:flex;flex-direction:column;flex:1;min-width:0;">
+      <div class="tabbar">
+        <div class="pinrow" title="compact pinned row">
+          <button class="pintab gc-blue"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span><span class="pindot"></span></button>
+          <button class="pintab"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg></span></button>
+        </div>
+        <div class="tabs">
+          <div class="tab grouped gc-blue">
+            <span class="tdot"></span>
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/></svg>
+            <span class="ttitle">数据整理.canvas</span>
+            <button class="tclose"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+          </div>
+          <div class="tab active">
+            
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">灵感收集.md</span>
+            <button class="tclose"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+          </div>
+          <div class="tab">
+            
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">文献综述.md</span>
+            <button class="tclose"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+          </div>
+          <div class="tab">
+            
+            <svg class="i14 ticon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/></svg>
+            <span class="ttitle">会议记录.md</span>
+            <button class="tclose"><span class="tt-icon " style="--tt-icon-size:12px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></span></button>
+          </div>
+        </div>
+        <div class="tb-acts">
+          <button class="tb-btn"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span></button>
+          <button class="tb-btn"><span class="tt-icon " style="--tt-icon-size:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><g fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></g></svg></span></button>
+        </div>
+      </div>
+
+      <div class="editor">
+        <div class="note">
+          <h1 class="nt-title">灵感收集.md</h1>
+          <div class="nt-path">笔记 / 灵感收集.md</div>
+          <h2 class="nt-h2">标签为什么会堆起来</h2>
+          <p class="nt-p">研究、写作与项目并行推进时，标签栏很快就变成一条队列而不是一张地图：找到想要的那个，比重新打开它还费劲。</p>
+          <p class="nt-p">分组解决的是形状问题——几个有名字的桶，一个手势开关。难的不是手势，而是明天打开 Obsidian 时这些桶还在。</p>
+          <div class="callout">[!info]「研究」的 3 个已打开标签以蓝色胶囊环绕——这是按分组染色的效果，色点与胶囊同源。</div>
+          <h2 class="nt-h2">待补充</h2>
+          <p class="nt-li">竞品持久化缺陷案例整理</p>
+          <p class="nt-li">访谈纪要归档到「写作」</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 680 236" role="img" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif">
+  <title>Tab Tray write path and load order</title>
+  <desc>Every change is validated, debounced by 500 ms, written after rotating a backup, and replaced atomically. Loading falls back from the main file to the backup, then to a sync-conflict copy, then to an empty state.</desc>
+
+  <rect x="0" y="0" width="680" height="236" rx="12" fill="#161616"/>
+
+  <text x="40" y="34" font-size="11" fill="#7c7c7c" letter-spacing="1.4">WRITE PATH</text>
+
+  <g font-size="12" fill="#dadada" text-anchor="middle">
+    <rect x="40" y="46" width="102" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="91" y="69" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">applyMutation</text>
+    <text x="91" y="84" dominant-baseline="central" font-size="11" fill="#7c7c7c">one entry point</text>
+
+    <rect x="164" y="46" width="102" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="215" y="69" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">validate</text>
+    <text x="215" y="84" dominant-baseline="central" font-size="11" fill="#7c7c7c">R2 · R5 · R9 · R12</text>
+
+    <rect x="288" y="46" width="102" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="339" y="69" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">500 ms</text>
+    <text x="339" y="84" dominant-baseline="central" font-size="11" fill="#7c7c7c">debounced, max 2 s</text>
+
+    <rect x="412" y="46" width="102" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="463" y="69" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">rotate .bak</text>
+    <text x="463" y="84" dominant-baseline="central" font-size="11" fill="#7c7c7c">previous main</text>
+
+    <rect x="536" y="46" width="102" height="46" rx="8" fill="#241d33" stroke="#8b6cf0"/>
+    <text x="587" y="69" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace" fill="#c9bdf7">process()</text>
+    <text x="587" y="84" dominant-baseline="central" font-size="11" fill="#9a8ecf">atomic replace</text>
+  </g>
+
+  <g stroke="#454545" stroke-width="1.5" fill="none">
+    <path d="M142 69 H162" marker-end="url(#a)"/>
+    <path d="M266 69 H286" marker-end="url(#a)"/>
+    <path d="M390 69 H410" marker-end="url(#a)"/>
+    <path d="M514 69 H534" marker-end="url(#a)"/>
+  </g>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#454545" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="40" y="130" font-size="11" fill="#7c7c7c" letter-spacing="1.4">LOAD ORDER · FIRST PARSABLE WINS</text>
+
+  <g font-size="12" fill="#dadada" text-anchor="middle">
+    <rect x="40" y="142" width="127" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="103" y="165" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">data.json</text>
+    <text x="103" y="180" dominant-baseline="central" font-size="11" fill="#7c7c7c">newest mtime</text>
+
+    <rect x="197" y="142" width="127" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="260" y="165" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">data.json.bak</text>
+    <text x="260" y="180" dominant-baseline="central" font-size="11" fill="#7c7c7c">previous main</text>
+
+    <rect x="354" y="142" width="127" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="417" y="165" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">sync-conflict</text>
+    <text x="417" y="180" dominant-baseline="central" font-size="11" fill="#7c7c7c">left untouched</text>
+
+    <rect x="511" y="142" width="127" height="46" rx="8" fill="#1e1e1e" stroke="#2e2e2e"/>
+    <text x="574" y="165" dominant-baseline="central" font-family="ui-monospace, Menlo, monospace">empty</text>
+    <text x="574" y="180" dominant-baseline="central" font-size="11" fill="#7c7c7c">and say so</text>
+  </g>
+
+  <g stroke="#454545" stroke-width="1.5" fill="none">
+    <path d="M167 165 H195" marker-end="url(#a)"/>
+    <path d="M324 165 H352" marker-end="url(#a)"/>
+    <path d="M481 165 H509" marker-end="url(#a)"/>
+  </g>
+
+  <text x="40" y="218" font-size="11" fill="#7c7c7c">A file that cannot be parsed is renamed aside, never overwritten. Pin state and missing markers are derived, never stored.</text>
+</svg>
