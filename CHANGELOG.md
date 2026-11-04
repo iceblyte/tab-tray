@@ -93,6 +93,31 @@ Second round of community-plugin review fixes.
   panel now keeps the last read tab highlighted instead of dropping the
   highlight whenever the panel itself has focus.
 
+## [1.0.3] - 2026-11-04
+
+Correctness and release-integrity fixes found by the v1 audit. No schema
+change, no new feature.
+
+### Fixed
+
+- A `data.json` that cannot be parsed is no longer overwritten when it cannot be
+  moved aside first. Previously the rename failure only logged, and the write
+  continued over the bytes the plugin had never managed to read; now the write
+  is aborted and retried, so the original file survives.
+- Files opened from outside the vault show their file name on Windows. The
+  external section listed the full `file:C:\notes\note.md` pseudo-path because
+  the name was split on `/` only; `\` and the `file:` prefix are now handled.
+- The pinned tooltip on a member said unpinning restores it to the group. It
+  now says what actually happens: pinned tabs stay outside groups.
+
+### Changed
+
+- Releases run lint, typecheck and tests through the new CI workflow before any
+  asset is published, so a tag can no longer ship a build that fails its suite.
+- Removed the leftover `tab-tray-1.0.0.zip` / `1.0.1.zip` artifacts and three
+  unused interface strings.
+
+[1.0.3]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.3
 [1.0.2]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.2
 [1.0.1]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.1
 [1.0.0]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.0
