@@ -1,8 +1,22 @@
 /** Display helpers shared by both views. */
 
+/**
+ * The file name Obsidian would show for a path.
+ *
+ * Vault paths always use `/`, but a tab opened from outside the vault carries a
+ * `file:` pseudo-path around a native path — `file:C:\notes\note.md` on Windows.
+ * Splitting on `/` alone leaves the whole string intact, so the external
+ * section listed `file:C:\notes\note.md` instead of `note.md`.
+ */
+export function displayName(path: string): string {
+	const native = path.startsWith('file:') ? path.slice('file:'.length) : path;
+	const parts = native.split(/[/\\]/);
+	const last = parts[parts.length - 1];
+	return last !== undefined && last.length > 0 ? last : path;
+}
+
 export function baseName(path: string): string {
-	const parts = path.split('/');
-	return parts[parts.length - 1] ?? path;
+	return displayName(path);
 }
 
 /** Native file-type icons only — v1 deliberately does not offer custom icons. */

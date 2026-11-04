@@ -5,7 +5,7 @@
 	import type { I18nKey } from '../../i18n';
 	import { addToGroupMenuItem } from '../../integrations/menus';
 	import type { TabListEntry } from '../../workspace/plan';
-	import { baseName, iconForPath } from '../file-utils';
+	import { baseName, displayName, iconForPath } from '../file-utils';
 	import Icon from '../Icon.svelte';
 
 	let { controller }: { controller: TrayController } = $props();
@@ -595,7 +595,7 @@
 		oncontextmenu={(event) => onTabContextMenu(event, entry)}
 	>
 		<Icon name={iconForPath(entry.path)} size={16} cls="micon" />
-		<span class="mname">{baseName(entry.path)}</span>
+		<span class="mname" title={entry.path}>{displayName(entry.path)}</span>
 		{#if entry.paneCount > 1}
 			<span class="tpane" title={t('tabs.badge.panesHint', { count: entry.paneCount })}>
 				{t('tabs.badge.panes', { count: entry.paneCount })}
