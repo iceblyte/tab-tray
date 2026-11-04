@@ -111,7 +111,7 @@ npm run lint       # Biome
 npm run typecheck  # tsc --noEmit
 ```
 
-架构、持久化设计与决策记录见 [docs/DESIGN.md](./docs/DESIGN.md)；需求基线见 [docs/PRD.md](./docs/PRD.md)；人工验收清单见 [docs/ACCEPTANCE.md](./docs/ACCEPTANCE.md)。实现所依据的 UI 原型在 [prototype/](./prototype/index.html)，上面的截图由真实 `styles.css` 经 [docs/images/build-preview.mjs](./docs/images/build-preview.mjs) 渲染而成。
+架构、持久化设计与决策记录见 [docs/DESIGN.md](./docs/DESIGN.md)；需求基线见 [docs/PRD.md](./docs/PRD.md)；人工验收清单见 [docs/ACCEPTANCE.md](./docs/ACCEPTANCE.md)。实现之前的 UI 原型在 [prototype/](./prototype/index.html)（早于合并侧栏，属设计历史）；上面的截图由真实 `styles.css` 经 [docs/images/build-preview.mjs](./docs/images/build-preview.mjs) 渲染而成。
 
 ## 支持
 

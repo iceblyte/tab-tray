@@ -153,9 +153,10 @@ npm run typecheck  # tsc --noEmit
 Architecture, the persistence design and the decision log are in
 [docs/DESIGN.md](./docs/DESIGN.md); the requirement baseline is
 [docs/PRD.md](./docs/PRD.md); the manual acceptance checklist is
-[docs/ACCEPTANCE.md](./docs/ACCEPTANCE.md). The UI prototypes the implementation
-follows are in [prototype/](./prototype/index.html), and the screenshots above
-are rendered from the real `styles.css` by
+[docs/ACCEPTANCE.md](./docs/ACCEPTANCE.md). The UI prototypes that led to the
+implementation are in [prototype/](./prototype/index.html) — they predate the
+merged sidebar, so treat them as design history. The screenshots above are
+rendered from the real `styles.css` by
 [docs/images/build-preview.mjs](./docs/images/build-preview.mjs).
 
 ## Support
