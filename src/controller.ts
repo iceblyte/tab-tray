@@ -309,14 +309,10 @@ export class TrayController {
 
 		const outcome = await this.#executor.collapse(group.members.map((m) => m.path));
 
-		if (outcome.skippedPinned > 0) {
-			this.#notify(
-				this.#i18n.t('notice.collapsedPinned', { name: group.name, count: outcome.skippedPinned }),
-				'warn',
-				8000,
-			);
-			return;
-		}
+		// Pinned members are skipped here as a race guard only: R6 removes a
+		// member the moment it is pinned, so a pinned member should never
+		// survive in `group.members`. Closing the rest is still the right
+		// outcome, so the run continues rather than stopping to warn.
 		if (outcome.closed === 0) {
 			this.#notify(this.#i18n.t('notice.nothingToCollapse', { name: group.name }), 'info');
 			return;

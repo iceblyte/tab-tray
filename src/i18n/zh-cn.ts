@@ -23,7 +23,7 @@ export const zhCN: Record<I18nKey, string> = {
 	'member.closedHint': '未打开 → 点击在当前窗格打开；Ctrl/Cmd = 新开',
 	'member.missingHint': '失效成员：文件已在 Obsidian 之外被移动或删除',
 	'member.missing': '丢失',
-	'member.pinnedHint': '挂起成员：已被原生钉住，收起时跳过；取消固定后自动恢复',
+	'member.pinnedHint': '已固定：固定标签不属于任何分组；取消固定后也不会自动回到分组',
 	'member.remove': '移出分组',
 
 	'modal.delete.title': '删除分组',
@@ -71,7 +71,6 @@ export const zhCN: Record<I18nKey, string> = {
 	'notice.expandedReplaced': '已展开「{name}」——已替换当前窗格的 {count} 个标签。',
 	'notice.firstExpandHint': '首次使用提示：按住 Ctrl/Cmd 展开可改为追加模式',
 	'notice.collapsed': '已收起「{name}」——已关闭 {count} 个标签。',
-	'notice.collapsedPinned': '已收起「{name}」：{count} 个成员因已固定未关闭。',
 	'notice.nothingToCollapse': '「{name}」在本窗口没有已打开的标签。',
 	'notice.nothingToCollapseAll': '本窗口没有已打开的分组标签。',
 	'notice.collapsedAll': '已收起全部分组——已关闭 {count} 个标签。',
@@ -86,7 +85,6 @@ export const zhCN: Record<I18nKey, string> = {
 	'notice.noActiveGroup': '当前活动标签不属于任何分组。',
 	'notice.openFailed': '无法打开「{name}」。',
 	'notice.missingSkipped': '已跳过 {count} 个丢失的成员。',
-	'notice.closeFailed': '有 {count} 个标签未能关闭。',
 	'notice.persistFailed': '本次更改尚未写入磁盘，将自动重试。',
 	'notice.persistPaused': 'data.json 无法解析，已暂停写入以保护原文件。',
 	'notice.loadedBackup': '主数据文件损坏，已回退备份。',
@@ -118,7 +116,6 @@ export const zhCN: Record<I18nKey, string> = {
 	'settings.data.title': '数据与持久化',
 	'settings.data.desc':
 		'分组数据保存于 `.obsidian/plugins/tab-tray/data.json`：每次变更 500ms 内防抖原子写盘，并先轮换 `data.json.bak` 备份；主文件损坏时自动回退备份；检测到同步冲突副本时按修改时间加载最新可解析版本。卸载或禁用插件**不会删除**数据文件。',
-	'settings.about.title': '关于',
 	'settings.about.name': 'Tab Tray v{version} · MIT License',
 	'settings.about.desc': 'Obsidian 桌面端标签分组与固定收纳。',
 	'settings.about.sponsor': '在爱发电赞助作者',

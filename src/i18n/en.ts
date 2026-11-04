@@ -26,7 +26,7 @@ export const en = {
 	'member.closedHint': 'Not open → click to open in the active pane; Ctrl/Cmd opens a new tab',
 	'member.missingHint': 'Missing: the file was moved or deleted outside Obsidian',
 	'member.missing': 'missing',
-	'member.pinnedHint': 'Pinned — skipped when collapsing; unpin to make it a normal member again',
+	'member.pinnedHint': 'Pinned — pinned tabs stay outside groups; unpinning does not re-add it',
 	'member.remove': 'Remove from group',
 
 	// Delete confirmation (A1)
@@ -80,8 +80,6 @@ export const en = {
 	'notice.expandedReplaced': 'Expanded “{name}” — replaced {count} tabs in the active pane.',
 	'notice.firstExpandHint': 'First-use hint: hold Ctrl/Cmd to append instead of replacing',
 	'notice.collapsed': 'Collapsed “{name}” — closed {count} tabs.',
-	'notice.collapsedPinned':
-		'Collapsed “{name}”: {count} members were left open because they are pinned.',
 	'notice.nothingToCollapse': 'No tabs from “{name}” are open in this window.',
 	'notice.nothingToCollapseAll': 'No group tabs are open in this window.',
 	'notice.collapsedAll': 'Collapsed all groups — closed {count} tabs.',
@@ -96,7 +94,6 @@ export const en = {
 	'notice.noActiveGroup': 'The active tab does not belong to any group.',
 	'notice.openFailed': 'Could not open “{name}”.',
 	'notice.missingSkipped': '{count} missing members were skipped.',
-	'notice.closeFailed': '{count} tabs could not be closed.',
 	'notice.persistFailed':
 		'The last change has not been written to disk yet — retrying automatically.',
 	'notice.persistPaused':
@@ -136,7 +133,6 @@ export const en = {
 	'settings.data.title': 'Data & persistence',
 	'settings.data.desc':
 		'Groups live in `.obsidian/plugins/tab-tray/data.json`: every change is written within 500 ms using an atomic replace, rotating a `data.json.bak` copy first. A damaged main file falls back to the backup; sync-conflict copies are arbitrated by modification time. Disabling or uninstalling the plugin **never deletes** your data.',
-	'settings.about.title': 'About',
 	'settings.about.name': 'Tab Tray v{version} · MIT License',
 	'settings.about.desc': 'Browser-style tab grouping and pinning for Obsidian desktop.',
 	'settings.about.sponsor': 'Sponsor on Afdian',
