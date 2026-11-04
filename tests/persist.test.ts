@@ -271,6 +271,50 @@ describe('write path (F5)', () => {
 		expect(JSON.parse(port.files.get(MAIN)?.content ?? '{}').groups[0].id).toBe('recovered');
 	});
 
+	it('aborts the write when the corrupt file cannot be moved aside (M9)', async () => {
+		const port = new FakePort();
+		port.seed(MAIN, '{ broken');
+		port.seed(BAK, json(makeData(['from-bak'])));
+		port.fail(MAIN, 'rename');
+
+		const engine = makeEngine(port);
+		const events: PersistEvent[] = [];
+		engine.on((event) => events.push(event));
+
+		await engine.load();
+		engine.bind(() => makeData(['recovered']));
+		await engine.flush();
+
+		// The bytes we never managed to read must survive untouched.
+		expect(port.files.get(MAIN)?.content).toBe('{ broken');
+		expect(port.processCount).toBe(0);
+		expect(Array.from(port.files.keys()).some((key) => key.includes('.corrupt-'))).toBe(false);
+		expect(events.some((e) => e.type === 'persist-error')).toBe(true);
+	});
+
+	it('retries the preservation once the rename succeeds', async () => {
+		const port = new FakePort();
+		port.seed(MAIN, '{ broken');
+		port.seed(BAK, json(makeData(['from-bak'])));
+		port.fail(MAIN, 'rename');
+
+		const engine = makeEngine(port);
+		await engine.load();
+		engine.bind(() => makeData(['recovered']));
+
+		await engine.flush();
+		expect(port.files.get(MAIN)?.content).toBe('{ broken');
+
+		port.heal(MAIN, 'rename');
+		await vi.advanceTimersByTimeAsync(6000);
+		await engine.settled();
+
+		const corruptKey = Array.from(port.files.keys()).find((key) => key.includes('.corrupt-'));
+		expect(corruptKey).toBeDefined();
+		expect(port.files.get(corruptKey ?? '')?.content).toBe('{ broken');
+		expect(JSON.parse(port.files.get(MAIN)?.content ?? '{}').groups[0].id).toBe('recovered');
+	});
+
 	it('creates the file when the adapter refuses process() on a missing path', async () => {
 		const port = new FakePort();
 		// No main file seeded: simulates a fresh install.

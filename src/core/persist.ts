@@ -12,7 +12,8 @@ import { createEmptyData, type TrayData } from './types';
  *  - a single serial queue: at most one write in flight, ever;
  *  - `.bak` is rotated from the current main *before* the atomic replace, so at
  *    any instant at least one intact copy exists;
- *  - a load never overwrites a file it could not parse.
+ *  - a load never overwrites a file it could not parse: when the unparsable
+ *    bytes cannot be moved aside, the write is aborted rather than continued.
  */
 
 export const MAIN_FILE = 'data.json';
@@ -293,13 +294,19 @@ export class PersistenceEngine {
 		if (!this.#mainHealthy) {
 			// The main file could not be parsed at load time. Keep the bytes
 			// around for the user instead of silently replacing them.
-			preservedAs = `${MAIN_FILE}.corrupt-${stamp(this.#port.now())}`;
+			const candidate = `${MAIN_FILE}.corrupt-${stamp(this.#port.now())}`;
 			try {
-				await this.#port.rename(mainPath, this.#path(preservedAs));
+				await this.#port.rename(mainPath, this.#path(candidate));
 			} catch (error) {
-				this.#port.log('[tab-tray] could not preserve corrupt data file', error);
-				preservedAs = undefined;
+				// The copy could not be moved aside (permissions, a lock, an
+				// adapter quirk). Overwriting it now would destroy the only
+				// copy of data we never managed to read: abort instead and let
+				// the queue retry, keeping `#mainHealthy` false so the next
+				// attempt tries to preserve it again.
+				this.#port.log('[tab-tray] could not preserve corrupt data file; write aborted', error);
+				throw error;
 			}
+			preservedAs = candidate;
 			this.#mainHealthy = true;
 		} else {
 			// Rotate first: `.bak` always holds the previous intact main file.
@@ -319,8 +326,10 @@ export class PersistenceEngine {
 		} catch (error) {
 			// Some adapters refuse `process()` on a path that does not exist yet
 			// (first install). Creating the file once is enough; every later
-			// write goes through the atomic path again.
-			if (await this.#port.exists(mainPath)) throw error;
+			// write goes through the atomic path again. Never fall back for an
+			// unparsable file that is still on disk — that is the case the
+			// preservation step above exists to protect.
+			if (preservedAs === undefined && (await this.#port.exists(mainPath))) throw error;
 			await this.#port.writeText(mainPath, json);
 		}
 
