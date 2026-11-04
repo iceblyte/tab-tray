@@ -22,7 +22,11 @@ permissions:
   artifact-metadata: write
 
 jobs:
+  check:
+    uses: ./.github/workflows/ci.yml
+
   release:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Check out the tag
