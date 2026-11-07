@@ -767,6 +767,7 @@ jobs:
 1. **版本策略**：M1=`0.1.0`、M2=`0.2.0`、M3=`0.3.0`、验收过=`0.9.0`（dogfood）、市场提交=`1.0.0`；每次 `npm version` 由 `version-bump.mjs` 同步 manifest + versions.json；
 2. **社区商店提交清单**：manifest 字段合规（id/描述长度）、README en 主体 + zh 链接、GIF 演示（≤ 600px 宽惯例）、无 eval/遥测/网络、`isDesktopOnly: true`、minAppVersion 与 versions.json 一致、赞助链接置于 README 与设置页「关于」（PRD §4.1）；
 3. **发布后 4 周密集期**（V5）：issue/评价每周汇总一次，作为 v1.1 决策输入——**v1.1 启动前重开本设计文档做增量修订**。染色已在 v1 落地（D27），v1.1 的重点是 undo/回收站、诊断、a11y 与性能，而不是再决定「做不做染色」。
+4. **2026-11-07 路线决议**：主线 = A（Smart Groups），但先执行 D（加固）。v1.1 / v1.2 不动 schema，v2.0 才升到 `schemaVersion: 2` 并引入智能分组。拆解、语义决议与 DoD 见 [ROADMAP-v2.md](./ROADMAP-v2.md)；**v2.0 动工前必须先在此处补 D28–D32（kind/rule、手动优先、固定排除、展开上限、迁移与降级）**。
 
 ### 4.8 维护计划（6 个月承诺的可持续化）
 
