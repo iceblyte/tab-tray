@@ -14,7 +14,10 @@ import { readDroppedFiles } from './integrations/dnd';
 import { ConfirmModal } from './ui/confirm-modal';
 import { baseName } from './ui/file-utils';
 import { NewGroupModal } from './ui/new-group-modal';
+import { RecentClosedModal } from './ui/recent-closed-modal';
 import { VIEW_TYPE_GROUPS } from './ui/view-types';
+import type { CloseTracker } from './workspace/close-tracker';
+import type { ClosedEntry, ClosedStack, CloseReason } from './workspace/closed-stack';
 import type { WorkspaceExecutor } from './workspace/execute';
 import type { FileFollow } from './workspace/file-follow';
 import type { PinTracker } from './workspace/pin-tracker';
@@ -54,6 +57,8 @@ export interface ControllerDeps {
 	fileFollow: FileFollow;
 	executor: WorkspaceExecutor;
 	i18n: I18n;
+	closedStack: ClosedStack;
+	closeTracker: CloseTracker;
 }
 
 type NoticeKind = 'info' | 'warn' | 'error' | 'ok';
@@ -65,6 +70,8 @@ export class TrayController {
 	readonly #fileFollow: FileFollow;
 	readonly #executor: WorkspaceExecutor;
 	readonly #i18n: I18n;
+	readonly #closedStack: ClosedStack;
+	readonly #closeTracker: CloseTracker;
 
 	readonly #listeners = new Set<(state: RuntimeState) => void>();
 	readonly #unsubs: Array<() => void> = [];
@@ -80,6 +87,8 @@ export class TrayController {
 		this.#fileFollow = deps.fileFollow;
 		this.#executor = deps.executor;
 		this.#i18n = deps.i18n;
+		this.#closedStack = deps.closedStack;
+		this.#closeTracker = deps.closeTracker;
 		this.#state = this.#compute();
 	}
 
@@ -275,7 +284,7 @@ export class TrayController {
 		const group = findGroup(this.#state.data, groupId);
 		if (!group || group.members.length === 0) return;
 
-		const outcome = await this.#executor.expand(group, mode);
+		const outcome = await this.#withReason('expand', () => this.#executor.expand(group, mode));
 
 		if (outcome.skippedMissing > 0) {
 			this.#notify(
@@ -283,31 +292,31 @@ export class TrayController {
 				'warn',
 			);
 		}
-		if (outcome.opened === 0) return;
+		if (outcome.opened === 0 && outcome.closed === 0) return;
 
-		if (mode === 'replace' && outcome.closed > 0) {
-			this.#notify(
-				this.#i18n.t('notice.expandedReplaced', { name: group.name, count: outcome.opened }),
-				'ok',
-			);
-			if (!this.#firstExpandShown) {
-				this.#firstExpandShown = true;
-				this.#notify(this.#i18n.t('notice.firstExpandHint'), 'info', 8000);
-			}
-			return;
+		const replaced = mode === 'replace' && outcome.closed > 0;
+		const message = replaced
+			? this.#i18n.t('notice.expandedReplaced', { name: group.name, count: outcome.opened })
+			: this.#i18n.t('notice.expanded', { name: group.name, count: outcome.opened });
+
+		// Anything that closed tabs is undoable, including the case where the
+		// whole group turned out to be missing: the pane was still cleared.
+		if (outcome.closed > 0) this.#notifyUndoable(message, 'ok');
+		else this.#notify(message, 'ok');
+
+		if (replaced && !this.#firstExpandShown) {
+			this.#firstExpandShown = true;
+			this.#notify(this.#i18n.t('notice.firstExpandHint'), 'info', 8000);
 		}
-
-		this.#notify(
-			this.#i18n.t('notice.expanded', { name: group.name, count: outcome.opened }),
-			'ok',
-		);
 	}
 
 	async collapseGroup(groupId: string): Promise<void> {
 		const group = findGroup(this.#state.data, groupId);
 		if (!group) return;
 
-		const outcome = await this.#executor.collapse(group.members.map((m) => m.path));
+		const outcome = await this.#withReason('collapse', () =>
+			this.#executor.collapse(group.members.map((m) => m.path)),
+		);
 
 		// Pinned members are skipped here as a race guard only: R6 removes a
 		// member the moment it is pinned, so a pinned member should never
@@ -317,7 +326,7 @@ export class TrayController {
 			this.#notify(this.#i18n.t('notice.nothingToCollapse', { name: group.name }), 'info');
 			return;
 		}
-		this.#notify(
+		this.#notifyUndoable(
 			this.#i18n.t('notice.collapsed', { name: group.name, count: outcome.closed }),
 			'ok',
 		);
@@ -327,12 +336,12 @@ export class TrayController {
 		const groups = this.#state.data.groups;
 		if (groups.length === 0) return;
 
-		const outcome = await this.#executor.tidyAll(groups);
+		const outcome = await this.#withReason('collapse', () => this.#executor.tidyAll(groups));
 		if (outcome.closed === 0) {
 			this.#notify(this.#i18n.t('notice.nothingToCollapseAll'), 'info');
 			return;
 		}
-		this.#notify(this.#i18n.t('notice.collapsedAll', { count: outcome.closed }), 'ok');
+		this.#notifyUndoable(this.#i18n.t('notice.collapsedAll', { count: outcome.closed }), 'ok');
 	}
 
 	/** F6: "collapse the active group" — the group owning the active file (D12). */
@@ -362,11 +371,50 @@ export class TrayController {
 	}
 
 	async closeFile(path: string): Promise<void> {
-		await this.#executor.closePaths([path]);
+		// One tab is not worth a notice; the command and the list still cover it.
+		await this.#withReason('close', () => this.#executor.closePaths([path]));
 	}
 
 	async closeOthers(path: string): Promise<void> {
-		await this.#executor.closeOthers(path);
+		const closed = await this.#withReason('close-others', () => this.#executor.closeOthers(path));
+		if (closed > 1) {
+			this.#notifyUndoable(this.#i18n.t('notice.closedTabs', { count: closed }), 'info');
+		}
+	}
+
+	// ---------------------------------------------------------- recently closed
+
+	/** H1: newest first, for the list view. */
+	get closedTabs(): readonly ClosedEntry[] {
+		return this.#closedStack.entries();
+	}
+
+	get hasClosedTabs(): boolean {
+		return !this.#closedStack.isEmpty;
+	}
+
+	/** Undo: restores the newest batch, which is what one action closed. */
+	async reopenLastClosed(): Promise<void> {
+		const batch = this.#closedStack.peekBatch();
+		if (batch.length === 0) {
+			this.#notify(this.#i18n.t('notice.reopenEmpty'), 'info');
+			return;
+		}
+		await this.#reopen(batch.map((entry) => entry.path));
+	}
+
+	async reopenClosed(paths: readonly string[]): Promise<void> {
+		await this.#reopen(paths);
+	}
+
+	openRecentClosed(): void {
+		new RecentClosedModal(this.#app, {
+			i18n: this.#i18n,
+			entries: this.#closedStack.entries(),
+			onPick: (paths) => {
+				void this.#reopen(paths);
+			},
+		}).open();
 	}
 
 	setPinned(path: string, pinned: boolean): void {
@@ -528,6 +576,67 @@ export class TrayController {
 	#notify(message: string, kind: NoticeKind, duration = 5000): void {
 		const notice = new Notice(message, duration);
 		notice.containerEl.addClass('tab-tray-notice', `tab-tray-notice-${kind}`);
+	}
+
+	/**
+	 * Same notice, plus the one action a user reaches for right after a
+	 * destructive click. It sits in the notice rather than in the command
+	 * palette because the mistake is discovered while the notice is on screen.
+	 */
+	#notifyUndoable(message: string, kind: NoticeKind): void {
+		const notice = new Notice(message, 8000);
+		notice.containerEl.addClass('tab-tray-notice', `tab-tray-notice-${kind}`);
+
+		const undo = notice.messageEl.createEl('button', {
+			cls: 'tab-tray-notice-undo',
+			text: this.#i18n.t('notice.undo'),
+		});
+		undo.addEventListener('click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			notice.hide();
+			void this.reopenLastClosed();
+		});
+	}
+
+	/**
+	 * Labels the closes that happen inside `run`.
+	 *
+	 * The label has to be set before the executor rescans (it rescans
+	 * synchronously), which is why this wraps the call instead of recording
+	 * afterwards: by then the batch is already in the stack.
+	 */
+	async #withReason<T>(reason: CloseReason, run: () => Promise<T>): Promise<T> {
+		this.#closeTracker.setReason(reason);
+		try {
+			return await run();
+		} finally {
+			this.#closeTracker.resetReason();
+		}
+	}
+
+	async #reopen(paths: readonly string[]): Promise<void> {
+		if (paths.length === 0) return;
+
+		const outcome = await this.#executor.reopen(paths);
+		// Drop them either way: a missing file cannot be reopened later, and
+		// leaving it would make "undo" keep retrying the same dead entry.
+		this.#closedStack.remove(paths);
+
+		const restored = outcome.opened + outcome.focused;
+		if (restored === 0) {
+			this.#notify(this.#i18n.t('notice.reopenFailed', { count: outcome.missing }), 'error');
+			return;
+		}
+		if (outcome.missing > 0) {
+			this.#notify(
+				this.#i18n.t('notice.reopenedSome', { count: restored, missing: outcome.missing }),
+				'warn',
+				8000,
+			);
+			return;
+		}
+		this.#notify(this.#i18n.t('notice.reopened', { count: restored }), 'ok');
 	}
 
 	#findLeaf(type: string): WorkspaceLeaf | null {

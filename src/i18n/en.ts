@@ -74,6 +74,19 @@ export const en = {
 	'cmd.openSidebar': 'Open group sidebar',
 	'cmd.openTabManager': 'Open tab manager',
 	'cmd.collapseAllGroups': 'Collapse all groups',
+	'cmd.reopenClosed': 'Reopen closed tabs',
+	'cmd.recentClosed': 'Recently closed…',
+
+	// Recently closed (H1)
+	'modal.recentClosed.title': 'Recently closed',
+	'modal.recentClosed.empty': 'Nothing has been closed since this session started.',
+	'modal.recentClosed.search': 'Search closed tabs…',
+	'modal.recentClosed.reopenAll': 'Reopen all',
+	'modal.recentClosed.cancel': 'Close',
+	'recent.reason.expand': 'replaced by expand',
+	'recent.reason.collapse': 'collapsed',
+	'recent.reason.close': 'closed',
+	'recent.reason.closeOthers': 'closed with others',
 
 	// Notices
 	'notice.expanded': 'Expanded “{name}” — opened {count} tabs.',
@@ -83,6 +96,12 @@ export const en = {
 	'notice.nothingToCollapse': 'No tabs from “{name}” are open in this window.',
 	'notice.nothingToCollapseAll': 'No group tabs are open in this window.',
 	'notice.collapsedAll': 'Collapsed all groups — closed {count} tabs.',
+	'notice.reopened': 'Reopened {count} tabs.',
+	'notice.reopenedSome': 'Reopened {count} tabs — {missing} are no longer available.',
+	'notice.reopenFailed': 'Nothing could be reopened — {count} files are gone.',
+	'notice.reopenEmpty': 'Nothing has been closed yet.',
+	'notice.undo': 'Undo',
+	'notice.closedTabs': 'Closed {count} tabs.',
 	'notice.pinnedBlocked': 'This tab is pinned — unpin it before adding it to a group.',
 	'notice.externalBlocked': 'Files outside the vault cannot be added to a group.',
 	'notice.moved': 'Moved from “{from}” to “{to}”.',

@@ -4,6 +4,8 @@ import type { TrayController } from '../controller';
 interface CommandSpec {
 	name: string;
 	callback: () => void;
+	/** When present the command stays out of the palette while this is false. */
+	enabled?: () => boolean;
 }
 
 /**
@@ -56,7 +58,19 @@ export class CommandRegistry {
 		for (const [id, spec] of desired) {
 			if (this.#names.get(id) === spec.name) continue;
 			if (this.#registered.has(id)) this.#plugin.removeCommand(id);
-			this.#plugin.addCommand({ id, name: spec.name, callback: spec.callback });
+			this.#plugin.addCommand({
+				id,
+				name: spec.name,
+				...(spec.enabled
+					? {
+							checkCallback: (checking: boolean) => {
+								if (!spec.enabled?.()) return false;
+								if (!checking) spec.callback();
+								return true;
+							},
+						}
+					: { callback: spec.callback }),
+			});
 			this.#registered.add(id);
 			this.#names.set(id, spec.name);
 		}
@@ -94,6 +108,20 @@ export class CommandRegistry {
 			name: t.t('cmd.collapseAllGroups'),
 			callback: () => {
 				void this.#controller.tidyAll();
+			},
+		});
+		commands.set('reopen-closed-tabs', {
+			name: t.t('cmd.reopenClosed'),
+			enabled: () => this.#controller.hasClosedTabs,
+			callback: () => {
+				void this.#controller.reopenLastClosed();
+			},
+		});
+		commands.set('recent-closed', {
+			name: t.t('cmd.recentClosed'),
+			enabled: () => this.#controller.hasClosedTabs,
+			callback: () => {
+				this.#controller.openRecentClosed();
 			},
 		});
 

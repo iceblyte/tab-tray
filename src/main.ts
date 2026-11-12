@@ -13,6 +13,8 @@ import { registerTrayIcon, TRAY_ICON_ID } from './ui/icons';
 import { PinnedRow } from './ui/pinned-row';
 import { GroupsView } from './ui/sidebar/view';
 import { LEGACY_VIEW_TYPE_MANAGER, VIEW_TYPE_GROUPS } from './ui/view-types';
+import { CloseTracker } from './workspace/close-tracker';
+import { ClosedStack } from './workspace/closed-stack';
 import { probeCompactPinnedRow } from './workspace/compat';
 import { WorkspaceExecutor } from './workspace/execute';
 import { FileFollow } from './workspace/file-follow';
@@ -37,6 +39,8 @@ export default class TabTrayPlugin extends Plugin {
 	#controller!: TrayController;
 	#pinnedRow!: PinnedRow;
 	#commands!: CommandRegistry;
+	#closedStack!: ClosedStack;
+	#closeTracker!: CloseTracker;
 	#probeAttempts = 0;
 
 	override async onload(): Promise<void> {
@@ -76,6 +80,7 @@ export default class TabTrayPlugin extends Plugin {
 		this.#commands?.dispose();
 		this.#controller?.dispose();
 		this.#pinnedRow?.dispose();
+		this.#closeTracker?.dispose();
 		this.#tracker?.dispose();
 		this.#fileFollow?.dispose();
 		this.#persist?.dispose();
@@ -115,6 +120,8 @@ export default class TabTrayPlugin extends Plugin {
 		);
 		this.#fileFollow = new FileFollow(this.app, this.#store);
 		this.#executor = new WorkspaceExecutor(this.app, this.#tracker);
+		this.#closedStack = new ClosedStack();
+		this.#closeTracker = new CloseTracker(this.app, this.#tracker, this.#closedStack);
 		this.#controller = new TrayController({
 			app: this.app,
 			store: this.#store,
@@ -122,6 +129,8 @@ export default class TabTrayPlugin extends Plugin {
 			fileFollow: this.#fileFollow,
 			executor: this.#executor,
 			i18n: this.#i18n,
+			closedStack: this.#closedStack,
+			closeTracker: this.#closeTracker,
 		});
 		this.#pinnedRow = new PinnedRow(this.app, this.#controller);
 
@@ -165,6 +174,10 @@ export default class TabTrayPlugin extends Plugin {
 	#startEngines(): void {
 		this.#tracker.start(this);
 		this.#fileFollow.start(this);
+		// After the tracker: the close tracker seeds itself from the current
+		// scan, and seeding from an empty snapshot would make the first real
+		// scan look like a burst of closes.
+		this.#closeTracker.start(this);
 		this.#controller.start();
 
 		this.app.workspace.onLayoutReady(() => {
