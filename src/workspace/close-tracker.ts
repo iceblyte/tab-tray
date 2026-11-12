@@ -1,4 +1,4 @@
-import type { App } from 'obsidian';
+import { type App, TFile } from 'obsidian';
 import {
 	type ClosedStack,
 	type CloseReason,
@@ -50,6 +50,20 @@ export class CloseTracker {
 		host.registerEvent(
 			this.#app.workspace.on('window-close', () => {
 				this.#skipNextScan = true;
+			}),
+		);
+
+		// F7 keeps the stack pointing at files that still exist. Subscribed here
+		// rather than in FileFollow: the stack is this module's data, so it
+		// maintains it rather than reaching into another adapter.
+		host.registerEvent(
+			this.#app.vault.on('rename', (file, oldPath) => {
+				if (file instanceof TFile) this.#stack.rename(oldPath, file.path);
+			}),
+		);
+		host.registerEvent(
+			this.#app.vault.on('delete', (file) => {
+				if (file instanceof TFile) this.#stack.forget(file.path);
 			}),
 		);
 	}
