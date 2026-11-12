@@ -49,16 +49,16 @@ v1.1「可信」→ v1.2「顺手」→ v2.0「自动」
 
 **P0 已在 1.0.3 清零**（CI、损坏文件覆盖）。以下是剩余项，按「信任收益 / 成本」排序。
 
-### H1 · undo / 重新打开关闭的标签 ★最高优先
+### H1 · undo / 重新打开关闭的标签 ★最高优先 —— **已实现（待发版）**
 
 **问题**：替换式展开会关掉当前窗格所有非固定标签，收起会关掉整组成员。误点一次无法恢复——这是新用户最不敢用的地方，也是 PRD §5.1 R5 明确承诺过的兜底。
 
-**改动点**
-- 新增 `src/workspace/closed-stack.ts`：内存环形栈，容量 20，条目 `{ path, windowId, reason: 'expand' | 'collapse' | 'close', closedAt }`。**不持久化**（重启即清空，避免第二套事实源）。
-- `WorkspaceExecutor.expand / collapse` 在 detach 每个 leaf 前记录路径；`planCloseFile` 路径同样入栈。
-- `controller` 暴露 `reopenLastClosed()`：按栈顶批量重开（保持原顺序），跳过已不存在的文件。
-- 命令 `reopen-closed-tabs`（「重新打开关闭的标签」），可绑快捷键；Notice 里给「撤销」入口。
-- 关闭栈为空时命令不出现在面板（`checkCallback` 返回 false）。
+**改动点（已落地）**
+- `src/workspace/closed-stack.ts`：内存栈，容量 20，条目 `{ path, windowId, reason, closedAt }`。**不持久化**（重启即清空，避免第二套事实源）。
+- `src/workspace/close-tracker.ts`：用 `PinTracker` 前后快照按稳定 `leafId` 求差得到关闭；rename/delete 维护路径；popout 整窗关闭不入栈。
+- `WorkspaceExecutor.reopen(paths)`：已打开则聚焦、否则新开，只激活第一个。
+- `controller` 的 `#withReason()` 给关闭批次打标签，`#notifyUndoable()` 在 Notice 里放「撤销」。
+- 命令 `reopen-closed-tabs` + `recent-closed`（「最近关闭」列表），栈空时都不出现在面板。
 
 **验收**：展开 A 组（替换掉 5 个标签）→ 执行命令 → 5 个标签按原顺序回来；重启 Obsidian 后栈为空且命令不可用；文件已删除时跳过并提示。
 
@@ -72,7 +72,7 @@ v1.1「可信」→ v1.2「顺手」→ v2.0「自动」
 
 **核心约束**（本机 1.14.x `app.js` 实测）：`updateTabDisplay()` 每次都会 `tabsInnerEl.setChildrenInPlace(标签头数组)`，把容器子节点同步成标签头列表——**注入的节点会被清掉**。因此只能给现有标签头加类名、用伪元素画 pill。
 
-**改动点**：`tab-decorator` 单写者重构（把 `pinned-row` 与染色收敛）、`tt-g*` 类名 + 伪元素 pill、捕获阶段点击拦截、拖拽时临时展开。六个 spike 与兜底见 [DESIGN-v1.1.md](./DESIGN-v1.1.md) §3.9。
+**改动点**：折叠类名直接加进 `PinnedRow.refresh()`（调研确认它已是标签头的唯一写者，**不需要**额外的单写者重构）；`tt-g*` 类名 + 伪元素 pill；捕获阶段点击拦截；拖拽时临时展开；折叠状态存 `Settings.collapsedGroups`（用户已决定持久化）。六个 spike 与兜底见 [DESIGN-v1.1.md](./DESIGN-v1.1.md) §3.9。
 
 **验收**：点组名 chip → 该组标签收起为 pill（显示组名 + 数量）；点 pill → 原样展开；拖拽排序在折叠态下仍落点正确；重启后全部展开；宿主 DOM 变化时静默降级（分组仍可用，标签栏不折叠）。
 

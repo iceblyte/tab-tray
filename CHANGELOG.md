@@ -117,6 +117,17 @@ change, no new feature.
 - Removed the leftover `tab-tray-1.0.0.zip` / `1.0.1.zip` artifacts and three
   unused interface strings.
 
+## [Unreleased]
+
+### Added
+
+- **Undo** — expanding, collapsing and "close others" now put an undo button in
+  their notice, and two commands cover the case where the notice is gone:
+  "Reopen closed tabs" restores the last action, "Recently closed…" lists
+  everything closed since the session started, with search.
+- The list is memory-only and capped at 20. Closing a popout window does not
+  fill it: losing a window on purpose is not a mistake to undo.
+
 [1.0.3]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.3
 [1.0.2]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.2
 [1.0.1]: https://github.com/iceblyte/tab-tray/releases/tag/1.0.1

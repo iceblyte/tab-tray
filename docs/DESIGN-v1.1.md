@@ -2,11 +2,23 @@
 
 | | |
 |---|---|
-| 状态 | **方案待确认，未开始开发** |
-| 日期 | 2026-11-11 |
+| 状态 | **A 已实现；B 待 spike** |
+| 日期 | 2026-11-11（2026-11-12 决议回写） |
 | 范围 | A：撤销关闭的标签（参考 Recent Files）；B：在标签栏内折叠/展开分组（Chrome 式） |
 | 上游 | [ROADMAP-v2.md](./ROADMAP-v2.md) §2（H1）、[AUDIT-2026-10-31](./AUDIT-2026-10-31.md) §3.2 |
 | 调研方法 | 读 Recent Files 源码（`main.ts`，763 行）；读本机 Obsidian 1.14.x 的 `obsidian.asar` 中 `app.js` / `app.css` |
+
+## 决议（2026-11-11 用户确认）
+
+| # | 问题 | 决定 |
+|---|---|---|
+| 1 | B 的排期 | v1.1 只做 spike，**v1.2 交付** |
+| 2 | 折叠状态 | **持久化**（原建议为会话级，已按用户决定改为写盘；方案见 §3.5） |
+| 3 | pill 显示组名 | **显示组名 + 计数** |
+| 4 | 撤销范围 | 「重新打开最近一批」**加上**一个「最近关闭」列表视图（已实现，见 §2.6） |
+| 5 | 前置重构 | 同意，但调研后发现**不需要**（见 §3.6 的更正） |
+
+> **§3.6 更正**：原方案假设「紧凑行」与「染色」是两个模块在写同一批标签头。实际 `src/ui/pinned-row.ts` 一个类同时负责两者（`COMPACT_CLASS` 与 `GROUPED_CLASS`），JS 侧已经是单写者，CSS 全部从 `--tt-group-color` 派生。所以**不做独立的 `tab-decorator` 重构**，标签栏折叠的类名直接加在 `PinnedRow.refresh()` 里即可。
 
 ---
 
@@ -137,6 +149,8 @@ t.prototype.getTabInsertLocation = function (e) {
 
 ## 2. 方案 A：撤销关闭的标签
 
+> **状态：已实现**（`closed-stack.ts`、`close-tracker.ts`、`executor.reopen`、命令 `reopen-closed-tabs` / `recent-closed`、Notice 撤销按钮、`RecentClosedModal`）。本节保留设计依据，实现与下列描述一致。
+
 ### 2.1 目标与非目标
 
 **目标**
@@ -190,11 +204,7 @@ push(entry):
   3. 截断到 20 条
 ```
 
-**rename / delete**：复用 `FileFollow` 已有的 `vault.on('rename' | 'delete')`，在它的回调里追加两条维护动作：
-- rename → 栈内 `path` 跟着改（`oldPath → newPath`）
-- delete → 移除该条目
-
-**不重复注册事件**：`main.ts` 里已经注册过 `file-follow`，把 `closedStack.attach(fileFollow)` 挂上去即可。
+**rename / delete**：由 `CloseTracker.start()` 自己订阅 `vault.on('rename' | 'delete')` 维护栈内路径，**不挂在 `FileFollow` 上**。理由：栈是这个模块的数据，自己维护比让另一个适配器反向回调更清楚；`FileFollow` 的职责仍然只是分组成员的丢失标记。
 
 ### 2.5 重开算法
 
@@ -218,40 +228,41 @@ reopenLast():
 | 入口 | 形态 | 说明 |
 |---|---|---|
 | 命令 | `reopen-closed-tabs`（「重新打开关闭的标签」） | `checkCallback` 在栈空时返回 false → 不出现在面板 |
-| Notice 动作 | 展开/收起后的 Notice 里加一个「撤销」按钮 | 最关键：误点的瞬间就在眼前，不需要去命令面板找 |
-| 侧栏 | 暂不做 | 三节 + 分组已经够密；先看反馈 |
+| Notice 动作 | 展开/收起/关闭其他的 Notice 里加一个「撤销」按钮 | 最关键：误点的瞬间就在眼前，不需要去命令面板找 |
+| 命令 | `recent-closed`（「最近关闭的标签…」） | 打开列表视图：搜索、单条重开、全部重开 |
 
-**Notice 里的按钮怎么加**：`new Notice()` 后拿 `notice.messageEl`，`createEl('button')` 并绑 `onclick`。需要实测 popout 里的 Notice 是否可点（Obsidian 的 Notice 可能挂在主窗口的 body 上）。
+**「最近关闭」为什么是模态框而不是侧栏第四节**：侧栏已经有「已固定 / 未分组 / 库外 + 分组」四段，再加一段会把常用的分组挤下去；而「找十分钟前关掉的那个文件」是低频、短时的动作，适合用完即走。列表只在打开时快照一次，栈在模态期间不会变。
+
+**Notice 里的按钮怎么加**：`new Notice()` 后拿 `notice.messageEl`（1.8.7+ 正式字段），`createEl('button')` 并绑 `onclick`。popout 里的 Notice 是否可点仍需实测。
 
 ### 2.7 边界情况
 
 | 情况 | 处理 |
 |---|---|
 | 同一文件被关两次 | 栈内去重，只留最新 |
-| 文件在关闭后被重命名 | `FileFollow` 的 rename 回调同步栈内路径 |
-| 文件被删除 | delete 回调移除；重开时若已不存在则跳过并提示 |
+| 文件在关闭后被重命名 | `CloseTracker` 的 `vault.on('rename')` 同步栈内路径 |
+| 文件被删除 | `vault.on('delete')` 移除；重开时若已不存在则跳过并提示 |
 | 库外文件（`file:` 路径） | 尝试 `getAbstractFileByPath` → `openFile`；失败则跳过 |
-| 退出 Obsidian | `onunload` 置 `disposed`，不再入栈（否则每次退出都塞满 20 条） |
-| 关闭 popout | 标记 `reason: 'window'`，不入栈 |
+| 退出 Obsidian | `onunload` 先 `dispose()`，`#disposed` 后不再入栈 |
+| 关闭 popout | `window-close` 置 `#skipNextScan`，整批跳过不入栈 |
 | 栈里 20 条全是同一批 | 允许（用户连点 4 次展开就想要 4 次撤销） |
 
 ### 2.8 落点与测试
 
-**新增**
-- `src/workspace/closed-stack.ts` — 纯数据结构 + push/take/维护，**不 import obsidian**（可单测）
-- `tests/closed-stack.test.ts`
+**新增（已落地）**
+- `src/workspace/closed-stack.ts` — 纯数据 + `snapshotTabs` / `diffClosed`，**不 import obsidian**
+- `src/workspace/close-tracker.ts` — 宿主胶水：订阅快照变化、标注 reason、维护 rename/delete
+- `src/ui/recent-closed-modal.ts` — 「最近关闭」列表
+- `tests/closed-stack.test.ts` — 18 条
 
-**改动**
-- `src/workspace/execute.ts` — expand / collapse / closeFile / closeOthers 在 detach 前调用 `closedStack.record(...)`
-- `src/workspace/file-follow.ts` — 暴露 rename/delete 回调给 `closed-stack`
-- `src/workspace/pin-tracker.ts` — 暴露前后快照，或在 `onChange` 里带上 `prev`
-- `src/controller.ts` — `reopenLastClosed()`；Notice 加撤销按钮
-- `src/integrations/commands.ts` — 新命令
-- `src/i18n/*` — 约 6 个键
+**改动（已落地）**
+- `src/workspace/execute.ts` — 新增 `reopen(paths)`，返回 `{ opened, focused, missing }`
+- `src/controller.ts` — `#withReason()` 包裹执行器调用、`#notifyUndoable()`、`reopenLastClosed()`、`openRecentClosed()`
+- `src/integrations/commands.ts` — `reopen-closed-tabs` / `recent-closed`（`checkCallback` 在栈空时隐藏）
+- `src/main.ts` — 装配 `ClosedStack` + `CloseTracker`，`closeTracker.start()` 排在 `tracker.start()` 之后
+- `src/i18n/*`、`styles.css` — 文案与 Notice 按钮、列表样式
 
-**测试**
-- 栈：去重、上限、批量、rename 跟随、delete 移除
-- 重开：跳过不存在、已在窗口内则聚焦、顺序保持（用 fake executor）
+**未覆盖**：`CloseTracker` 的胶水逻辑没有单测（需要 fake app + fake tracker）。纯逻辑已由 `diffClosed` 覆盖，胶水部分靠真实 Obsidian 验收。
 
 ---
 
@@ -321,42 +332,42 @@ container.addEventListener('click', (event) => {
 1. **capture 是否真的抢在委托之前** —— 宿主监听器挂在同一个 `containerEl` 上（冒泡阶段），capture 监听器在同元素上先触发，理论上成立，必须实测。
 2. **chip 命中区** —— 伪元素不产生独立的 `event.target`，只能用 `offsetX` 判断。若不可靠，退化方案见 §3.9 的 S-4。
 
-### 3.5 折叠状态存哪
+### 3.5 折叠状态存哪（**已决定：持久化**）
 
-**会话级内存**：`Set<groupId>`，放在 controller 的运行时状态里。
+原建议是会话级内存，理由是「折叠是视图状态，不该写盘」。用户 2026-11-11 决定改为**持久化**：重启后仍保持折叠，对「长期只用一个分组」的人是省事而不是风险。
 
-理由：
-- 「折叠」是视图状态，不是用户数据；写进 `data.json` 就要改 schema（v1.1 不动 schema）。
-- 重启后全部展开是**更安全**的默认：用户不会遇到「我的标签去哪了」。
-- 如果 4 周反馈里明确要求记住，v2.0 已经要升 schema，顺手加一个 `collapsedGroups: string[]` 即可。
-
-### 3.6 与现有两个标签头装饰器的共存（重要）
-
-现在有两个模块在写同一个 `header`：
-
-| 模块 | 写入 |
-|---|---|
-| `ui/pinned-row.ts` | `COMPACT_CLASS`、`--tab-width` 内联样式、`title` 属性 |
-| 染色（`tab-color-index.ts` + `controller`） | `--tab-background-active` / `--tab-background` / `--tab-outline-color` |
-
-再加一个分组折叠，就是三方写同一批元素。**必须收敛成单写者**，否则后跑的会覆盖先跑的（尤其是 `classList.toggle` 与 `style.setProperty` 互相踩）。
-
-**设计：`src/ui/tab-decorator.ts`**
+**落在 `Settings` 而不是 `TrayData` 顶层**：
 
 ```ts
-export interface DecorationInput {
-  groups: Array<{ id: string; color: ColorKey; memberPaths: Set<string> }>;
-  collapsed: Set<string>;
-  pinned: Set<string>;
-  settings: { compactPinnedRow: boolean; groupColors: boolean };
+interface Settings {
+  // …
+  /** v1.2 新增：被折叠的分组 id。写盘，重启后保持。 */
+  collapsedGroups: string[];
 }
-
-export function decorate(header: HTMLElement, path: string, input: DecorationInput): void
 ```
 
-一次算完、一次写完；`pinned-row.ts` 退化为「只负责探测 + 提供紧凑行的尺寸变量」，不再自己 toggle 类名。这样 `pinned-row` 的静态探测与分组折叠的类名不会互相清掉。
+三个理由：
+1. `parseSettings` 本来就是**逐字段修复**的宽容区（坏一个字段不牵连分组），折叠状态是最不需要硬失败的数据。
+2. 走现成的 `settings.update` 变更路径，不必新增 mutation 类型。
+3. **不需要升 `schemaVersion`**：这是可选字段，v1 数据缺它就取默认 `[]`；v2 的解析器也只读已知键，属于前向兼容的增量。降级到 v1 时该字段会被丢弃——只丢视图状态，不丢分组。
 
-> 这一步是方案 B 的**前置重构**，即使不做 B 也值得做——它把两个写者变一个。
+**启动时要对账**：`collapsedGroups` 里可能存在已被删除的分组 id。加载后按当前分组 id 过滤一次，与 `#reconcilePinnedMembers` 同一时点。v2.0 引入智能组后同样适用（按 id，与 `kind` 无关）。
+
+**实现位置**：v1.2 随 S0 一起做，v1.1 不引入（v1.1 不改 `Settings` 的字段集）。
+
+### 3.6 与现有标签头装饰器的共存（**已更正：不需要重构**）
+
+初稿假设「紧凑行」与「染色」是两个模块在写同一批标签头，因此提议抽出 `tab-decorator.ts` 做单写者。**实际读代码后这个前提不成立**：
+
+`src/ui/pinned-row.ts` 一个类同时负责两者——`COMPACT_CLASS`（紧凑行）、`GROUPED_CLASS` + `--tt-group-color`（染色），并且 CSS 里所有染色效果都从 `--tt-group-color` 派生（`styles.css` 的 `.tab-tray-grouped` 系列）。JS 侧从来没有第二个写者。
+
+所以：
+
+- **不做** `tab-decorator.ts` 重构。它只会是一次纯改名，没有收益。
+- 标签栏折叠的类名（`tt-g` / `tt-g-first` / `tt-g-collapsed` / `tt-g-pill`）**直接加在 `PinnedRow.refresh()` 的同一个循环里**。那里已经拿到了 `header`、`path`、`pinned`、`color`，是唯一正确的写点。
+- 唯一要新增的输入是「哪些组被折叠」与「每个 header 属于哪个组」——前者来自 `Settings.collapsedGroups`，后者由现有的 `pathByHeader()` + `buildColorIndexByPath` 派生，不需要新扫描。
+
+> 这个更正省掉约一天的重构，也避免把已经稳定的 `pinned-row.ts` 拆成两半。
 
 ### 3.7 拖拽与隐藏标签的冲突
 
@@ -412,15 +423,13 @@ CSS：`body.tt-drag-open .tt-g-collapsed { display: revert }`。
 
 ## 4. 实施顺序
 
-| 阶段 | 内容 | 前置 | 交付 |
+| 阶段 | 内容 | 前置 | 状态 |
 |---|---|---|---|
-| **0** | `tab-decorator` 重构（把 pinned-row 与染色收敛成单写者） | 无 | 行为不变，测试全绿 |
-| **1** | 方案 A：`closed-stack` + 命令 + Notice 撤销 | 无 | 1.1.0 的一部分 |
-| **2** | 方案 B 的 S-1 ~ S-6 六个 spike | 阶段 0 | 一份「可行性结论」，可能否掉部分设计 |
-| **3** | 方案 B 实现 | spike 全过 | 1.2.0 headline |
+| ~~0~~ | ~~`tab-decorator` 重构~~ | — | **取消**（§3.6 更正：已是单写者） |
+| **1** | 方案 A：`closed-stack` + 关闭检测 + 命令 + Notice 撤销 + 「最近关闭」列表 | 无 | **已完成** |
+| **2** | 方案 B 的 S-1 ~ S-6 六个 spike | 无 | 待做（需要真实 Obsidian 交互） |
+| **3** | 方案 B 实现（含 `Settings.collapsedGroups` 持久化） | spike 全过 | 1.2.0 headline |
 | **4** | Smart Groups（G1…） | 1.2.0 | 2.0.0 |
-
-阶段 0 与 1 可以并行，互不冲突。
 
 ---
 
@@ -430,18 +439,18 @@ CSS：`body.tt-drag-open .tt-g-collapsed { display: revert }`。
 |---|---|---|
 | 标签栏是宿主私有 DOM，1.15 改结构就失效 | **高** | 全部走类名 + 伪元素，不注入节点；`compat.ts` 加一次运行时自检；失效时静默降级（分组仍可用，只是标签栏不折叠） |
 | `display:none` 破坏点击索引 | 高 | S-1 先验；兜底 `visibility` + `width:0` |
-| 三方写同一批 header 互相覆盖 | 中 | 阶段 0 的单写者重构 |
+| 折叠状态写盘后与分组删除不同步 | 中 | 启动时按当前分组 id 过滤一次（与 `#reconcilePinnedMembers` 同时点） |
 | 撤销恢复顺序与用户预期不符 | 中 | 按关闭顺序恢复；Notice 明确说「已恢复 N 个」 |
-| 折叠状态让用户找不到标签 | 中 | 重启即展开；pill 上有计数；侧栏始终显示全部 |
+| 持久化折叠让用户找不到标签 | 中 | pill 上有组名与计数；侧栏始终显示全部；命令可一键全部展开（v1.2 待加） |
 
 ---
 
-## 6. 需要你拍板
+## 6. 决议记录
 
-1. **方案 B 的排期**：按建议「v1.1 只 spike，v1.2 交付」？还是希望 v1.1 就带上（会把 1.1 从 3–4 周拉到 6 周左右）？
-2. **折叠状态**：会话级（推荐，重启展开）/ 持久化（要等 v2 schema）。
-3. **pill 上要不要显示组名**：显示（推荐）/ 只显示颜色 + 数字。
-4. **方案 A 的范围**：只做「重新打开最近一批」（推荐）/ 还要做「最近关闭」列表视图。
-5. **`tab-decorator` 前置重构**：同意先做（推荐，1 天左右，行为不变）？
+2026-11-11 用户确认：
 
-确认后我再按阶段 0 → 1 开始写代码，方案 B 先只出 spike 结论。
+1. **方案 B 的排期**：v1.1 只 spike，v1.2 交付。
+2. **折叠状态**：持久化 → 落在 `Settings.collapsedGroups`（§3.5）。
+3. **pill 显示组名 + 计数**。
+4. **方案 A 的范围**：「重新打开最近一批」**加上**「最近关闭」列表视图 → 已实现。
+5. **前置重构**：同意，但调研后确认不需要（§3.6）→ 已取消，省一天。
