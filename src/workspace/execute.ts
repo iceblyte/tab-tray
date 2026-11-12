@@ -33,6 +33,14 @@ export interface CollapseOutcome {
 	notOpen: number;
 }
 
+export interface ReopenOutcome {
+	opened: number;
+	/** Already on screen somewhere, so it was revealed instead of duplicated. */
+	focused: number;
+	/** No longer in the vault, or the host refused to open it. */
+	missing: number;
+}
+
 export type OpenResult = 'focused' | 'opened' | 'failed';
 
 function currentWindow(): Window {
@@ -178,6 +186,49 @@ export class WorkspaceExecutor {
 		}
 		this.#tracker.rescan();
 		return closed;
+	}
+
+	/**
+	 * H1 — reopen in the order they were closed, as tabs in the current window.
+	 *
+	 * Files that are already on screen are revealed rather than duplicated, so
+	 * an undo after a partial close does not produce two tabs for one file.
+	 * Only the first restored tab is activated: switching five times in a row
+	 * reads as a flicker, not as progress.
+	 */
+	async reopen(paths: readonly string[]): Promise<ReopenOutcome> {
+		let opened = 0;
+		let focused = 0;
+		let missing = 0;
+		const created: WorkspaceLeaf[] = [];
+
+		for (const path of paths) {
+			if (await this.focusPath(path)) {
+				focused += 1;
+				continue;
+			}
+
+			const file = this.#app.vault.getAbstractFileByPath(path);
+			if (!(file instanceof TFile)) {
+				missing += 1;
+				continue;
+			}
+
+			try {
+				const leaf = this.#app.workspace.getLeaf('tab');
+				await leaf.openFile(file, { active: false });
+				created.push(leaf);
+				opened += 1;
+			} catch {
+				missing += 1;
+			}
+		}
+
+		const first = created[0];
+		if (first) this.#app.workspace.setActiveLeaf(first, { focus: true });
+
+		this.#tracker.rescan();
+		return { opened, focused, missing };
 	}
 
 	/** F1 / F9 click semantics: focus when already open, otherwise open anew. */
